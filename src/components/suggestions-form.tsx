@@ -12,9 +12,12 @@ import { Loader2, Wand2 } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Switch } from "./ui/switch";
 
 export function SuggestionsForm() {
   const [dataDescription, setDataDescription] = useState("");
+  const [aiPlusEnabled, setAiPlusEnabled] = useState(false);
+  const [additionalPrompt, setAdditionalPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SuggestApisOutput | null>(null);
   const { toast } = useToast();
@@ -24,7 +27,10 @@ export function SuggestionsForm() {
     setLoading(true);
     setResult(null);
     try {
-      const suggestions = await suggestApis({ dataDescription });
+      const suggestions = await suggestApis({
+        dataDescription,
+        processingPrompt: aiPlusEnabled ? additionalPrompt : undefined,
+      });
       setResult(suggestions);
     } catch (err) {
       toast({
@@ -55,6 +61,32 @@ export function SuggestionsForm() {
           찾고 있는 데이터에 대한 명확하고 간결한 설명을 제공하십시오.
         </p>
       </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch id="ai-plus" checked={aiPlusEnabled} onCheckedChange={setAiPlusEnabled} />
+          <Label htmlFor="ai-plus" className="font-semibold text-primary">AI+</Label>
+        </div>
+
+        {aiPlusEnabled && (
+           <div className="grid w-full gap-2">
+            <Label htmlFor="additional-prompt" className="font-semibold">추가 프롬프트</Label>
+            <Textarea
+              id="additional-prompt"
+              placeholder="예: '데이터를 월별로 그룹화하고 JSON 형식으로 반환합니다.'"
+              value={additionalPrompt}
+              onChange={(e) => setAdditionalPrompt(e.target.value)}
+              rows={3}
+              className="focus:!ring-accent focus:ring-2 transition-all"
+            />
+            <p className="text-sm text-muted-foreground">
+              AI가 원하는 방식으로 데이터를 처리하도록 추가 지침을 제공합니다.
+            </p>
+          </div>
+        )}
+      </div>
+
+
       <Button type="submit" className="w-full !bg-accent hover:!bg-accent/90 !text-accent-foreground font-bold" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
         제안 받기

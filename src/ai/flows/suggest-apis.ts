@@ -15,6 +15,7 @@ import {z} from 'genkit';
 
 const SuggestApisInputSchema = z.object({
   dataDescription: z.string().describe('A description of the data the user needs.'),
+  processingPrompt: z.string().optional().describe('An optional prompt describing how the data should be processed.'),
 });
 export type SuggestApisInput = z.infer<typeof SuggestApisInputSchema>;
 
@@ -34,6 +35,9 @@ const suggestApisPrompt = ai.definePrompt({
   input: {schema: SuggestApisInputSchema},
   output: {schema: SuggestApisOutputSchema},
   prompt: `You are an expert API suggestion engine. Given a description of the data a user needs, you will suggest a list of APIs that can provide that data.
+{{#if processingPrompt}}
+The user also provided the following instructions on how to process the data: {{{processingPrompt}}}. Take this into account when suggesting APIs.
+{{/if}}
 
 Data Description: {{{dataDescription}}}
 
