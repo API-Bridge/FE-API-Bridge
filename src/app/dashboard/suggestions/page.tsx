@@ -9,7 +9,7 @@ export default function SuggestionsPage() {
         <CardHeader>
           <CardTitle className="font-headline text-2xl">커스텀API 생성</CardTitle>
           <CardDescription>
-            필요한 데이터를 설명하면 AI가 관련 API를 제안해 드립니다.
+            필요한 데이터를 설명하면 AI가 커스텀 API 생성을 도와드립니다.
           </CardDescription>
         </CardHeader>
         <CardContent>

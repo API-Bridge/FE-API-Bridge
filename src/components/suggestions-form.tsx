@@ -36,7 +36,7 @@ export function SuggestionsForm() {
       toast({
         variant: "destructive",
         title: "오류가 발생했습니다.",
-        description: "AI 제안을 가져오지 못했습니다. 나중에 다시 시도해 주세요.",
+        description: "API를 생성하는데 실패했습니다. 나중에 다시 시도해 주세요.",
       })
       console.error(err);
     } finally {
@@ -89,7 +89,7 @@ export function SuggestionsForm() {
 
       <Button type="submit" className="w-full !bg-accent hover:!bg-accent/90 !text-accent-foreground font-bold" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-        제안 받기
+        API 생성하기
       </Button>
 
       {loading && (
@@ -109,7 +109,7 @@ export function SuggestionsForm() {
       {result && (
         <Card className="bg-gradient-to-br from-card to-muted/50">
           <CardHeader>
-            <CardTitle className="text-xl font-headline">제안된 API</CardTitle>
+            <CardTitle className="text-xl font-headline">추천 API</CardTitle>
             <CardDescription>귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,9 +124,9 @@ export function SuggestionsForm() {
             ) : (
              <Alert>
                 <Wand2 className="h-4 w-4" />
-                <AlertTitle>제안을 찾을 수 없음</AlertTitle>
+                <AlertTitle>결과를 찾을 수 없음</AlertTitle>
                 <AlertDescription>
-                    AI가 귀하의 쿼리에 대한 특정 API 제안을 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.
+                    AI가 귀하의 쿼리에 대한 API를 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.
                 </AlertDescription>
             </Alert>
             )}
