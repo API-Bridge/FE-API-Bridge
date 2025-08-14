@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -28,8 +29,8 @@ export function SuggestionsForm() {
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "An error occurred.",
-        description: "Failed to fetch AI suggestions. Please try again later.",
+        title: "오류가 발생했습니다.",
+        description: "AI 제안을 가져오지 못했습니다. 나중에 다시 시도해 주세요.",
       })
       console.error(err);
     } finally {
@@ -40,10 +41,10 @@ export function SuggestionsForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid w-full gap-2">
-        <Label htmlFor="data-description" className="font-semibold">Data Description</Label>
+        <Label htmlFor="data-description" className="font-semibold">데이터 설명</Label>
         <Textarea
           id="data-description"
-          placeholder="e.g., 'I need a list of all public holidays in Canada for the current year.'"
+          placeholder="예: '올해 캐나다의 모든 공휴일 목록이 필요합니다.'"
           value={dataDescription}
           onChange={(e) => setDataDescription(e.target.value)}
           rows={4}
@@ -51,12 +52,12 @@ export function SuggestionsForm() {
           className="focus:!ring-accent focus:ring-2 transition-all"
         />
         <p className="text-sm text-muted-foreground">
-          Provide a clear and concise description of the data you're looking for.
+          찾고 있는 데이터에 대한 명확하고 간결한 설명을 제공하십시오.
         </p>
       </div>
       <Button type="submit" className="w-full !bg-accent hover:!bg-accent/90 !text-accent-foreground font-bold" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-        Get Suggestions
+        제안 받기
       </Button>
 
       {loading && (
@@ -76,8 +77,8 @@ export function SuggestionsForm() {
       {result && (
         <Card className="bg-gradient-to-br from-card to-muted/50">
           <CardHeader>
-            <CardTitle className="text-xl font-headline">Suggested APIs</CardTitle>
-            <CardDescription>Here are some APIs that might fit your needs.</CardDescription>
+            <CardTitle className="text-xl font-headline">제안된 API</CardTitle>
+            <CardDescription>귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.</CardDescription>
           </CardHeader>
           <CardContent>
             {result.apiSuggestions.length > 0 ? (
@@ -91,9 +92,9 @@ export function SuggestionsForm() {
             ) : (
              <Alert>
                 <Wand2 className="h-4 w-4" />
-                <AlertTitle>No Suggestions Found</AlertTitle>
+                <AlertTitle>제안을 찾을 수 없음</AlertTitle>
                 <AlertDescription>
-                    Our AI couldn't find specific API suggestions for your query. Try rephrasing your description.
+                    AI가 귀하의 쿼리에 대한 특정 API 제안을 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.
                 </AlertDescription>
             </Alert>
             )}

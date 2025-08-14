@@ -26,10 +26,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/suggestions", icon: Lightbulb, label: "AI Suggestions" },
-  { href: "/dashboard/monitoring", icon: BarChart3, label: "Monitoring" },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
+  { href: "/dashboard/suggestions", icon: Lightbulb, label: "AI 제안" },
+  { href: "/dashboard/monitoring", icon: BarChart3, label: "모니터링" },
+  { href: "/dashboard/settings", icon: Settings, label: "설정" },
 ];
 
 const NavLink = ({ href, icon: Icon, label, pathname }: typeof navItems[0] & { pathname: string }) => (
@@ -68,7 +68,7 @@ export default function DashboardLayout({
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold font-headline">
               <CodeXml className="h-6 w-6 text-primary" />
-              <span>API Bridge</span>
+              <span>API 브릿지</span>
             </Link>
           </div>
           <div className="flex-1 overflow-auto py-2">
@@ -86,14 +86,14 @@ export default function DashboardLayout({
                 className="shrink-0 md:hidden"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <span className="sr-only">탐색 메뉴 전환</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                 <Link href="/dashboard" className="flex items-center gap-2 font-semibold font-headline">
                   <CodeXml className="h-6 w-6 text-primary" />
-                  <span className="">API Bridge</span>
+                  <span className="">API 브릿지</span>
                 </Link>
               </div>
               <div className="py-2">
@@ -111,19 +111,19 @@ export default function DashboardLayout({
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="sr-only">Toggle user menu</span>
+                <span className="sr-only">사용자 메뉴 전환</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">Settings</Link>
+                <Link href="/dashboard/settings">설정</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem>지원</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/">Logout</Link>
+                <Link href="/">로그아웃</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

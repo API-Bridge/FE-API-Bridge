@@ -1,3 +1,4 @@
+
 import { SuggestionsForm } from "@/components/suggestions-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -6,9 +7,9 @@ export default function SuggestionsPage() {
     <div className="flex justify-center items-start pt-0 md:pt-8">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">AI API Suggestions</CardTitle>
+          <CardTitle className="font-headline text-2xl">AI API 제안</CardTitle>
           <CardDescription>
-            Describe the data you need, and our AI will suggest relevant APIs for you to use.
+            필요한 데이터를 설명하면 AI가 관련 API를 제안해 드립니다.
           </CardDescription>
         </CardHeader>
         <CardContent>
