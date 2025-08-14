@@ -35,7 +35,7 @@ export default function LandingPage() {
             <Link href="#features" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
               기능
             </Link>
-            <Link href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+            <Link href="/pricing" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
               가격
             </Link>
             <Link href="#" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
