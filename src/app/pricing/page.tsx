@@ -44,7 +44,7 @@ export default function PricingPage() {
              <Button variant="ghost" asChild>
               <Link href="/login">로그인</Link>
             </Button>
-            <Button className="!bg-accent hover:!bg-accent/90 !text-accent-foreground" asChild>
+            <Button asChild>
               <Link href="/login">
                 시작하기 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -114,7 +114,7 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full !bg-primary hover:!bg-primary/90 !text-primary-foreground" asChild>
+                  <Button className="w-full" asChild>
                     <Link href="/login">Pro 플랜 시작하기</Link>
                   </Button>
                 </CardFooter>

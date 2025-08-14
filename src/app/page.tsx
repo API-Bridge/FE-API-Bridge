@@ -46,7 +46,7 @@ export default function LandingPage() {
              <Button variant="ghost" asChild>
               <Link href="/login">로그인</Link>
             </Button>
-            <Button className="!bg-accent hover:!bg-accent/90 !text-accent-foreground" asChild>
+            <Button asChild>
               <Link href="/login">
                 시작하기 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -64,7 +64,7 @@ export default function LandingPage() {
             <p className="max-w-3xl mx-auto text-lg md:text-xl text-muted-foreground mb-10">
               API 브릿지는 AI를 사용하여 데이터 요구사항을 즉시 안전하고 확장 가능한 API로 변환합니다. 코딩 시간을 줄이고 아이디어 실현에 더 많은 시간을 투자하세요.
             </p>
-            <Button size="lg" className="!bg-primary hover:!bg-primary/90 !text-primary-foreground" asChild>
+            <Button size="lg" asChild>
               <Link href="/login">
                 무료로 시작하기 <ArrowRight className="ml-2" />
               </Link>

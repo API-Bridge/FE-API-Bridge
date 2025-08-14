@@ -55,7 +55,7 @@ export function SuggestionsForm() {
           onChange={(e) => setDataDescription(e.target.value)}
           rows={4}
           required
-          className="focus:!ring-accent focus:ring-2 transition-all"
+          className="focus:!ring-primary focus:ring-2 transition-all"
         />
         <p className="text-sm text-muted-foreground">
           찾고 있는 데이터에 대한 명확하고 간결한 설명을 제공하십시오.
@@ -77,7 +77,7 @@ export function SuggestionsForm() {
               value={additionalPrompt}
               onChange={(e) => setAdditionalPrompt(e.target.value)}
               rows={3}
-              className="focus:!ring-accent focus:ring-2 transition-all"
+              className="focus:!ring-primary focus:ring-2 transition-all"
             />
             <p className="text-sm text-muted-foreground">
               AI가 원하는 방식으로 데이터를 처리하도록 추가 지침을 제공합니다.
@@ -87,7 +87,7 @@ export function SuggestionsForm() {
       </div>
 
 
-      <Button type="submit" className="w-full !bg-accent hover:!bg-accent/90 !text-accent-foreground font-bold" disabled={loading || !dataDescription}>
+      <Button type="submit" className="w-full font-bold" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
         API 생성하기
       </Button>
