@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Space Grotesk', 'sans-serif'],
+        body: ['Nunito', 'sans-serif'],
+        headline: ['Comfortaa', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

@@ -42,10 +42,10 @@ export default function PricingPage() {
           </nav>
           <div className="flex items-center gap-4">
              <Button variant="ghost" asChild>
-              <Link href="/login">로그인</Link>
+              <Link href="/login" prefetch={true}>로그인</Link>
             </Button>
             <Button asChild>
-              <Link href="/login">
+              <Link href="/login" prefetch={true}>
                 시작하기 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -84,7 +84,7 @@ export default function PricingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" variant="outline" asChild>
-                    <Link href="/login">무료로 시작하기</Link>
+                    <Link href="/login" prefetch={true}>무료로 시작하기</Link>
                   </Button>
                 </CardFooter>
               </Card>
@@ -115,7 +115,7 @@ export default function PricingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" asChild>
-                    <Link href="/login">Pro 플랜 시작하기</Link>
+                    <Link href="/login" prefetch={true}>Pro 플랜 시작하기</Link>
                   </Button>
                 </CardFooter>
               </Card>

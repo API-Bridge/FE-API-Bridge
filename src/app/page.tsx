@@ -1,40 +1,54 @@
 
+'use client';
+
 import Link from "next/link";
 import { ArrowRight, Server, Zap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageToggle } from "@/components/language-toggle";
+import { useLanguage } from "@/contexts/language-context";
+import SplitText from "@/components/SplitText";
 
-const features = [
-  {
-    icon: <Server className="w-10 h-10" />,
-    title: "API 통합",
-    description: "여러 공공 API를 하나의 인터페이스로 통합합니다.",
-  },
-  {
-    icon: <Zap className="w-10 h-10" />,
-    title: "빠른 처리",
-    description: "최적화된 성능으로 빠른 데이터 처리를 제공합니다.",
-  },
-  {
-    icon: <Shield className="w-10 h-10" />,
-    title: "안전한 연결",
-    description: "보안이 강화된 안전한 API 연결을 보장합니다.",
-  },
-];
 
 export default function LandingPage() {
+  const { t } = useLanguage();
+
+  const handleAnimationComplete = () => {
+    console.log('All letters have animated!');
+  };
+
+
+  const features = [
+    {
+      icon: <Server className="w-10 h-10" />,
+      title: t('feature.integration.title'),
+      description: t('feature.integration.description'),
+    },
+    {
+      icon: <Zap className="w-10 h-10" />,
+      title: t('feature.performance.title'),
+      description: t('feature.performance.description'),
+    },
+    {
+      icon: <Shield className="w-10 h-10" />,
+      title: t('feature.security.title'),
+      description: t('feature.security.description'),
+    },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
-          <div className="mr-4 hidden md:flex">
+          <div className="mr-4 hidden md:flex space-x-2">
+            <LanguageToggle />
             <ThemeToggle />
           </div>
           <div className="flex items-center space-x-2">
             <Server className="h-6 w-6" />
             <span className="hidden font-bold sm:inline-block">
-              API Bridge
+              {t('brand')}
             </span>
           </div>
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -43,28 +57,29 @@ export default function LandingPage() {
                 href="#features"
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
               >
-                Features
+                {t('nav.features')}
               </Link>
               <Link
                 href="/pricing"
+                prefetch={true}
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
               >
-                Pricing
+                {t('nav.pricing')}
               </Link>
               <Link
                 href="#"
                 className="transition-colors hover:text-foreground/80 text-foreground/60"
               >
-                Docs
+                {t('nav.docs')}
               </Link>
             </nav>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/login">Sign In</Link>
+                <Link href="/login" prefetch={true}>{t('nav.signin')}</Link>
               </Button>
               <Button size="sm" asChild>
-                <Link href="/login">
-                  Get Started <ArrowRight className="ml-1 h-4 w-4" />
+                <Link href="/login" prefetch={true}>
+                  {t('nav.getstarted')} <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -75,22 +90,30 @@ export default function LandingPage() {
       <main className="flex-1">
         <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
           <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
-            <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
-              Connect Public APIs with{" "}
-              <span className="text-gradient">API Bridge</span>
-            </h1>
+            <SplitText
+              text={`${t('hero.title')} ${t('hero.subtitle')}`}
+              className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl"
+              delay={50}
+              duration={0.6}
+              splitType="chars"
+              from={{ opacity: 0, y: 40 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.1}
+              textAlign="center"
+              onLetterAnimationComplete={handleAnimationComplete}
+            />
             <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-              Simplify your development by connecting multiple public APIs through a single, unified interface. Build faster, integrate easier.
+              {t('hero.description')}
             </p>
             <div className="space-x-4">
               <Button size="lg" asChild>
-                <Link href="/login">
-                  Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                <Link href="/login" prefetch={true}>
+                  {t('hero.cta')} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
                 <Link href="#features">
-                  Learn More
+                  {t('hero.learn')}
                 </Link>
               </Button>
             </div>
@@ -103,15 +126,15 @@ export default function LandingPage() {
         >
           <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
             <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-              Features
+              {t('features.title')}
             </h2>
             <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-              Everything you need to connect and manage your APIs efficiently.
+              {t('features.description')}
             </p>
           </div>
           <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
             {features.map((feature, index) => (
-              <div key={index} className="relative overflow-hidden rounded-lg border bg-background p-2">
+              <div key={index} className="relative overflow-hidden rounded-3xl border bg-background/60 backdrop-blur-sm dark:bg-background p-2">
                 <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
                   <div className="text-primary">{feature.icon}</div>
                   <div className="space-y-2">
@@ -132,16 +155,16 @@ export default function LandingPage() {
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <Server className="h-6 w-6" />
             <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              Built by API Bridge team. The source code is available on{" "}
+              {t('footer.built')}{" "}
               <a
                 href="#"
                 target="_blank"
                 rel="noreferrer"
                 className="font-medium underline underline-offset-4"
               >
-                GitHub
+                {t('footer.github')}
               </a>
-              .
+              {t('footer.available')}
             </p>
           </div>
         </div>
