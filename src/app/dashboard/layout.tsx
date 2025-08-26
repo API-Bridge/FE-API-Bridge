@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   Menu,
+  MessageSquare,
   Settings,
   User,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
+  { href: "/dashboard/api-board", icon: MessageSquare, label: "API 게시판" },
   { href: "/dashboard/suggestions", icon: Lightbulb, label: "커스텀API 생성" },
   { href: "/dashboard/monitoring", icon: BarChart3, label: "모니터링" },
   { href: "/dashboard/settings", icon: Settings, label: "설정" },

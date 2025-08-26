@@ -1,4 +1,6 @@
 
+"use client";
+
 import {
   Activity,
   ArrowUpRight,
@@ -6,9 +8,11 @@ import {
   CreditCard,
   KeyRound,
   MoreVertical,
+  Share2,
   CodeXml as ApiIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,34 +44,63 @@ const apis = [
     status: "활성",
     calls: "1,203,489",
     successRate: "99.8%",
+    isShared: true,
+    isImported: false,
+    originalAuthor: null,
   },
   {
     name: "주식 시장 피드",
     status: "활성",
     calls: "8,456,123",
     successRate: "99.5%",
+    isShared: false,
+    isImported: false,
+    originalAuthor: null,
   },
   {
     name: "사용자 위치정보 서비스",
     status: "비활성",
     calls: "50,123",
     successRate: "100%",
+    isShared: false,
+    isImported: true,
+    originalAuthor: "locationdev",
   },
   {
     name: "제품 카탈로그 API",
     status: "활성",
     calls: "2,345,678",
     successRate: "98.9%",
+    isShared: true,
+    isImported: false,
+    originalAuthor: null,
   },
   {
     name: "결제 게이트웨이 브릿지",
     status: "오류",
     calls: "987,654",
     successRate: "92.1%",
+    isShared: false,
+    isImported: true,
+    originalAuthor: "paymentexpert",
   },
 ];
 
 export default function Dashboard() {
+  const [apiSharedStatus, setApiSharedStatus] = useState(
+    apis.reduce((acc, api) => {
+      acc[api.name] = api.isShared;
+      return acc;
+    }, {} as Record<string, boolean>)
+  );
+
+  const toggleShare = (apiName: string) => {
+    setApiSharedStatus(prev => ({
+      ...prev,
+      [apiName]: !prev[apiName]
+    }));
+  };
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
@@ -144,6 +177,7 @@ export default function Dashboard() {
                 <TableHead>상태</TableHead>
                 <TableHead className="text-right">호출 (30일)</TableHead>
                 <TableHead className="text-right">성공률</TableHead>
+                <TableHead className="text-center">공유</TableHead>
                 <TableHead>
                   <span className="sr-only">작업</span>
                 </TableHead>
@@ -152,7 +186,27 @@ export default function Dashboard() {
             <TableBody>
               {apis.map((api) => (
                 <TableRow key={api.name}>
-                  <TableCell className="font-medium">{api.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        {api.name}
+                        {api.isImported ? (
+                          <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600 border-orange-200">
+                            가져온 API
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                            내 API
+                          </Badge>
+                        )}
+                      </div>
+                      {api.isImported && api.originalAuthor && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          원작자: {api.originalAuthor}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={
@@ -169,6 +223,27 @@ export default function Dashboard() {
                   <TableCell className="text-right">{api.calls}</TableCell>
                   <TableCell className="text-right">
                     {api.successRate}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {api.isImported ? (
+                      <span className="text-sm text-muted-foreground font-medium">
+                        Imported
+                      </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant={apiSharedStatus[api.name] ? "default" : "outline"}
+                        onClick={() => toggleShare(api.name)}
+                        className={`gap-1 w-20 ${
+                          apiSharedStatus[api.name]
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                        }`}
+                      >
+                        <Share2 className="h-3 w-3" />
+                        {apiSharedStatus[api.name] ? "Sharing" : "Share"}
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
