@@ -119,27 +119,26 @@ export default function APIBoard() {
         </Card>
       </div>
 
-      {/* 검색 기능 */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="API 이름, 설명 또는 작성자로 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
 
       {/* 공유된 API 목록 */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
             <CardTitle className="font-headline">공유된 API</CardTitle>
             <CardDescription>
               커뮤니티에서 공유한 커스텀 API를 탐색하고 사용해보세요.
             </CardDescription>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="API 이름, 설명 또는 작성자로 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 w-64"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent>

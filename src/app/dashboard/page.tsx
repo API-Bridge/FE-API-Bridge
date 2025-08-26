@@ -10,10 +10,12 @@ import {
   MoreVertical,
   Share2,
   CodeXml as ApiIcon,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,11 +39,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useLanguage } from "@/contexts/language-context";
 
-const apis = [
+const getApiData = (translateIfExists: (key: string, fallback: string) => string) => [
   {
-    name: "날씨 데이터 API",
-    status: "활성",
+    name: translateIfExists("api.weather", "날씨 데이터 API"),
+    nameKey: "api.weather",
+    status: "active",
     calls: "1,203,489",
     successRate: "99.8%",
     isShared: true,
@@ -49,8 +53,9 @@ const apis = [
     originalAuthor: null,
   },
   {
-    name: "주식 시장 피드",
-    status: "활성",
+    name: translateIfExists("api.stockMarket", "주식 시장 피드"),
+    nameKey: "api.stockMarket", 
+    status: "active",
     calls: "8,456,123",
     successRate: "99.5%",
     isShared: false,
@@ -58,8 +63,9 @@ const apis = [
     originalAuthor: null,
   },
   {
-    name: "사용자 위치정보 서비스",
-    status: "비활성",
+    name: translateIfExists("api.locationService", "사용자 위치정보 서비스"),
+    nameKey: "api.locationService",
+    status: "inactive",
     calls: "50,123",
     successRate: "100%",
     isShared: false,
@@ -67,8 +73,9 @@ const apis = [
     originalAuthor: "locationdev",
   },
   {
-    name: "제품 카탈로그 API",
-    status: "활성",
+    name: translateIfExists("api.productCatalog", "제품 카탈로그 API"),
+    nameKey: "api.productCatalog",
+    status: "active",
     calls: "2,345,678",
     successRate: "98.9%",
     isShared: true,
@@ -76,8 +83,9 @@ const apis = [
     originalAuthor: null,
   },
   {
-    name: "결제 게이트웨이 브릿지",
-    status: "오류",
+    name: translateIfExists("api.paymentGateway", "결제 게이트웨이 브릿지"),
+    nameKey: "api.paymentGateway",
+    status: "error",
     calls: "987,654",
     successRate: "92.1%",
     isShared: false,
@@ -87,6 +95,10 @@ const apis = [
 ];
 
 export default function Dashboard() {
+  const { t, translateIfExists } = useLanguage();
+  const apis = getApiData(translateIfExists);
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [apiSharedStatus, setApiSharedStatus] = useState(
     apis.reduce((acc, api) => {
       acc[api.name] = api.isShared;
@@ -101,54 +113,62 @@ export default function Dashboard() {
     }));
   };
 
+  const filteredApis = useMemo(() => {
+    if (!searchQuery) return apis;
+    return apis.filter(api => 
+      api.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (api.originalAuthor && api.originalAuthor.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [apis, searchQuery]);
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 API</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.totalApis')}</CardTitle>
             <ApiIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">5</div>
             <p className="text-xs text-muted-foreground">
-              지난달 이후 +2
+              +2 {t('dashboard.stats.lastMonth')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">활성 키</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.activeKeys')}</CardTitle>
             <KeyRound className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
             <p className="text-xs text-muted-foreground">
-              지난주 이후 +3
+              +3 {t('dashboard.stats.lastWeek')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 호출 (30일)</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.totalCalls')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12,234,567</div>
             <p className="text-xs text-muted-foreground">
-              지난달 대비 +19%
+              +19% {t('dashboard.stats.vsLastMonth')}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">가동 시간</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.stats.uptime')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">99.9%</div>
             <p className="text-xs text-muted-foreground">
-              모든 활성 API에서
+              {t('dashboard.stats.allActiveApis')}
             </p>
           </CardContent>
         </Card>
@@ -157,34 +177,44 @@ export default function Dashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
-            <CardTitle className="font-headline">내 API</CardTitle>
+            <CardTitle className="font-headline">{t('dashboard.myApis')}</CardTitle>
             <CardDescription>
-              사용자 지정 데이터 소스 API를 관리합니다.
+              {t('dashboard.myApis.description')}
             </CardDescription>
           </div>
-          <Button asChild size="sm" className="ml-auto gap-1">
-            <Link href="#">
-              API 생성
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('dashboard.search.placeholder') || "API 검색..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 w-64"
+              />
+            </div>
+            <Button asChild size="sm" className="gap-1">
+              <Link href="/dashboard/suggestions">
+                {t('dashboard.createApi')}
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>API 이름</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead className="text-right">호출 (30일)</TableHead>
-                <TableHead className="text-right">성공률</TableHead>
-                <TableHead className="text-center">공유</TableHead>
+                <TableHead>{t('dashboard.table.apiName')}</TableHead>
+                <TableHead>{t('dashboard.table.status')}</TableHead>
+                <TableHead className="text-right">{t('dashboard.table.calls')}</TableHead>
+                <TableHead className="text-center">{t('dashboard.table.sharing')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">작업</span>
+                  <span className="sr-only">{t('dashboard.table.actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {apis.map((api) => (
+              {filteredApis.map((api) => (
                 <TableRow key={api.name}>
                   <TableCell className="font-medium">
                     <div>
@@ -192,17 +222,17 @@ export default function Dashboard() {
                         {api.name}
                         {api.isImported ? (
                           <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600 border-orange-200">
-                            가져온 API
+                            {t('dashboard.badge.imported')}
                           </Badge>
                         ) : (
                           <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-                            내 API
+                            {t('dashboard.badge.myApi')}
                           </Badge>
                         )}
                       </div>
                       {api.isImported && api.originalAuthor && (
                         <div className="text-xs text-muted-foreground mt-1">
-                          원작자: {api.originalAuthor}
+                          {t('dashboard.originalAuthor')}: {api.originalAuthor}
                         </div>
                       )}
                     </div>
@@ -210,38 +240,31 @@ export default function Dashboard() {
                   <TableCell>
                     <Badge
                       variant={
-                        api.status === "활성"
+                        api.status === "active"
                           ? "default"
-                          : api.status === "오류"
+                          : api.status === "error"
                           ? "destructive"
                           : "secondary"
                       }
                     >
-                      {api.status}
+                      {t(`dashboard.status.${api.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">{api.calls}</TableCell>
-                  <TableCell className="text-right">
-                    {api.successRate}
-                  </TableCell>
                   <TableCell className="text-center">
                     {api.isImported ? (
                       <span className="text-sm text-muted-foreground font-medium">
-                        Imported
+                        {t('dashboard.share.imported')}
                       </span>
                     ) : (
                       <Button
                         size="sm"
-                        variant={apiSharedStatus[api.name] ? "default" : "outline"}
+                        variant={apiSharedStatus[api.name] ? "default" : "secondary"}
                         onClick={() => toggleShare(api.name)}
-                        className={`gap-1 w-20 ${
-                          apiSharedStatus[api.name]
-                            ? "bg-green-600 hover:bg-green-700 text-white"
-                            : "bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                        }`}
+                        className="gap-1 w-20"
                       >
                         <Share2 className="h-3 w-3" />
-                        {apiSharedStatus[api.name] ? "Sharing" : "Share"}
+                        {apiSharedStatus[api.name] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
                       </Button>
                     )}
                   </TableCell>
@@ -254,15 +277,15 @@ export default function Dashboard() {
                           variant="ghost"
                         >
                           <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">메뉴 전환</span>
+                          <span className="sr-only">{t('dashboard.menu.toggle')}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>작업</DropdownMenuLabel>
-                        <DropdownMenuItem>분석 보기</DropdownMenuItem>
-                        <DropdownMenuItem>키 관리</DropdownMenuItem>
-                        <DropdownMenuItem>설정</DropdownMenuItem>
-                        <DropdownMenuLabel>API 키</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t('dashboard.menu.actions')}</DropdownMenuLabel>
+                        <DropdownMenuItem>{t('dashboard.menu.viewAnalytics')}</DropdownMenuItem>
+                        <DropdownMenuItem>{t('dashboard.menu.keyManagement')}</DropdownMenuItem>
+                        <DropdownMenuItem>{t('dashboard.menu.settings')}</DropdownMenuItem>
+                        <DropdownMenuLabel>{t('dashboard.menu.apiKey')}</DropdownMenuLabel>
                         <DropdownMenuItem className="flex justify-between items-center cursor-pointer">
                           sk_...a4f2 <Copy className="h-4 w-4 text-muted-foreground" />
                         </DropdownMenuItem>

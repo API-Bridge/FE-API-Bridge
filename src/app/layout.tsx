@@ -3,6 +3,7 @@ import type {Metadata} from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/contexts/theme-context"
 import { LanguageProvider } from "@/contexts/language-context"
+import { UserProvider } from "@/contexts/user-context"
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -25,8 +26,10 @@ export default function RootLayout({
       <body className="font-body bg-background text-foreground antialiased font-semibold">
         <LanguageProvider>
           <ThemeProvider defaultTheme="system" storageKey="ui-theme">
-            {children}
-            <Toaster />
+            <UserProvider>
+              {children}
+              <Toaster />
+            </UserProvider>
           </ThemeProvider>
         </LanguageProvider>
       </body>

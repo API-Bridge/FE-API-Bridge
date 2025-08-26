@@ -11,6 +11,7 @@ import {
   Menu,
   MessageSquare,
   Settings,
+  Shield,
   User,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,16 +26,32 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { LanguageToggle } from "@/components/language-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useLanguage } from "@/contexts/language-context";
+import { useUser } from "@/contexts/user-context";
 
-const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
-  { href: "/dashboard/api-board", icon: MessageSquare, label: "API 게시판" },
-  { href: "/dashboard/suggestions", icon: Lightbulb, label: "커스텀API 생성" },
-  { href: "/dashboard/monitoring", icon: BarChart3, label: "모니터링" },
-  { href: "/dashboard/settings", icon: Settings, label: "설정" },
-];
+const getNavItems = (t: (key: string) => string, isAdmin: boolean = false) => {
+  const baseItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
+    { href: "/dashboard/api-board", icon: MessageSquare, label: t('nav.apiBoard') },
+    { href: "/dashboard/suggestions", icon: Lightbulb, label: t('nav.suggestions') },
+    { href: "/dashboard/monitoring", icon: BarChart3, label: t('nav.monitoring') },
+    { href: "/dashboard/settings", icon: Settings, label: t('nav.settings') },
+  ];
+  
+  if (isAdmin) {
+    baseItems.push({
+      href: "/dashboard/admin", 
+      icon: Shield, 
+      label: t('nav.admin') || '관리자'
+    });
+  }
+  
+  return baseItems;
+};
 
-const NavLink = ({ href, icon: Icon, label, pathname }: typeof navItems[0] & { pathname: string }) => (
+const NavLink = ({ href, icon: Icon, label, pathname }: { href: string; icon: any; label: string; pathname: string }) => (
   <Link
     href={href}
     className={cn(
@@ -54,6 +71,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+  const { isAdmin } = useUser();
+  const navItems = getNavItems(t, isAdmin);
 
   const sidebarNav = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -68,9 +88,9 @@ export default function DashboardLayout({
       <div className="hidden border-r bg-card md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold font-headline">
+            <Link href="/" className="flex items-center gap-2 font-semibold font-headline">
               <CodeXml className="h-6 w-6 text-primary" />
-              <span>API 브릿지</span>
+              <span>{t('brand')}</span>
             </Link>
           </div>
           <div className="flex-1 overflow-auto py-2">
@@ -80,6 +100,10 @@ export default function DashboardLayout({
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -88,14 +112,14 @@ export default function DashboardLayout({
                 className="shrink-0 md:hidden"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">탐색 메뉴 전환</span>
+                <span className="sr-only">{t('nav.menu.toggle')}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                <Link href="/dashboard" className="flex items-center gap-2 font-semibold font-headline">
+                <Link href="/" className="flex items-center gap-2 font-semibold font-headline">
                   <CodeXml className="h-6 w-6 text-primary" />
-                  <span className="">API 브릿지</span>
+                  <span className="">{t('brand')}</span>
                 </Link>
               </div>
               <div className="py-2">
@@ -113,19 +137,19 @@ export default function DashboardLayout({
                     <User className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="sr-only">사용자 메뉴 전환</span>
+                <span className="sr-only">{t('user.menu.toggle')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('user.menu.myAccount')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">설정</Link>
+                <Link href="/dashboard/settings">{t('user.menu.settings')}</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>지원</DropdownMenuItem>
+              <DropdownMenuItem>{t('user.menu.support')}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/">로그아웃</Link>
+                <Link href="/">{t('user.menu.logout')}</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
