@@ -45,7 +45,7 @@ export function SuggestionsForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid w-full gap-2">
-        <Label htmlFor="data-description" className="font-semibold">{t('suggestions.dataDescription')}</Label>
+        <Label htmlFor="data-description" className="font-semibold font-korean">{t('suggestions.dataDescription')}</Label>
         <Textarea
           id="data-description"
           placeholder={t('suggestions.examplePlaceholder')}
@@ -53,15 +53,15 @@ export function SuggestionsForm() {
           onChange={(e) => setDataDescription(e.target.value)}
           rows={4}
           required
-          className="focus:!ring-primary focus:ring-2 transition-all"
+          className="focus:!ring-primary focus:ring-2 transition-all font-korean"
         />
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground font-korean">
           {t('suggestions.helpText')}
         </p>
       </div>
 
 
-      <Button type="submit" className="w-full font-bold" disabled={loading || !dataDescription}>
+      <Button type="submit" className="w-full font-bold font-korean" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
         {t('suggestions.createButton')}
       </Button>
@@ -83,14 +83,14 @@ export function SuggestionsForm() {
       {result && (
         <Card className="bg-gradient-to-br from-card to-muted/50">
           <CardHeader>
-            <CardTitle className="text-xl font-headline">{t('suggestions.recommendedTitle') || '추천 API'}</CardTitle>
-            <CardDescription>{t('suggestions.recommendedDescription') || '귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.'}</CardDescription>
+            <CardTitle className="text-xl font-headline font-korean">{t('suggestions.recommendedTitle') || '추천 API'}</CardTitle>
+            <CardDescription className="font-korean">{t('suggestions.recommendedDescription') || '귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.'}</CardDescription>
           </CardHeader>
           <CardContent>
             {result.apiSuggestions.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {result.apiSuggestions.map((api, index) => (
-                  <Badge key={index} variant="secondary" className="text-base py-2 px-4 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors">
+                  <Badge key={index} variant="secondary" className="text-base py-2 px-4 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors font-korean">
                     {api}
                   </Badge>
                 ))}
@@ -98,8 +98,8 @@ export function SuggestionsForm() {
             ) : (
              <Alert>
                 <Wand2 className="h-4 w-4" />
-                <AlertTitle>{t('suggestions.noResultsTitle') || '결과를 찾을 수 없음'}</AlertTitle>
-                <AlertDescription>
+                <AlertTitle className="font-korean">{t('suggestions.noResultsTitle') || '결과를 찾을 수 없음'}</AlertTitle>
+                <AlertDescription className="font-korean">
                     {t('suggestions.noResultsDescription') || 'AI가 귀하의 쿼리에 대한 API를 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.'}
                 </AlertDescription>
             </Alert>

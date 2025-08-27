@@ -61,8 +61,8 @@ export default function AnimatedBackground() {
       return Array.from({ length: count }, () => ({
         x: Math.random() * (canvas.width + 200) - 100,
         y: Math.random() * canvas.height,
-        vx: (Math.random() * 0.3 + 0.1) * (Math.random() < 0.5 ? 1 : -1),
-        vy: (Math.random() - 0.5) * 0.1,
+        vx: (Math.random() * 0.15 + 0.05) * (Math.random() < 0.5 ? 1 : -1),
+        vy: (Math.random() - 0.5) * 0.05,
         radius: Math.random() * 80 + 40,
         opacity: Math.random() * 0.4 + 0.1,
         scale: Math.random() * 0.5 + 0.5,
@@ -114,8 +114,8 @@ export default function AnimatedBackground() {
       return Array.from({ length: count }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
         radius: Math.random() * 2 + 0.5,
         opacity: Math.random() * 0.8 + 0.2,
       }));
@@ -423,8 +423,8 @@ export default function AnimatedBackground() {
       const scale = 1.2; // Fixed appropriate scale
       
       // Constellation movement velocity (slower than individual stars)
-      const constellationVx = (Math.random() - 0.5) * 0.1;
-      const constellationVy = (Math.random() - 0.5) * 0.1;
+      const constellationVx = (Math.random() - 0.5) * 0.05;
+      const constellationVy = (Math.random() - 0.5) * 0.05;
 
       const stars = pattern.stars.map((star: any) => ({
         x: centerX + (star.x * scale),

@@ -62,8 +62,8 @@ export default function AdminPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium">{t('admin.accessDenied')}</p>
-          <p className="text-sm text-muted-foreground">{t('admin.adminOnly')}</p>
+          <p className="text-lg font-medium font-korean">{t('admin.accessDenied')}</p>
+          <p className="text-sm text-muted-foreground font-korean">{t('admin.adminOnly')}</p>
         </div>
       </div>
     );
@@ -72,15 +72,15 @@ export default function AdminPage() {
   return (
     <>
       {/* 상단 통계 카드 */}
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3 md:gap-8">
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.totalUsers')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('admin.totalUsers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold font-korean">{mockStats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground font-korean">
               +12 {t('admin.lastMonth')}
             </p>
           </CardContent>
@@ -88,12 +88,12 @@ export default function AdminPage() {
 
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.totalApis')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('admin.totalApis')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalApis}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold font-korean">{mockStats.totalApis}</div>
+            <p className="text-xs text-muted-foreground font-korean">
               +5 {t('admin.lastWeek')}
             </p>
           </CardContent>
@@ -101,86 +101,50 @@ export default function AdminPage() {
 
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.totalCalls')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('admin.totalCalls')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalCalls}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold font-korean">{mockStats.totalCalls}</div>
+            <p className="text-xs text-muted-foreground font-korean">
               +23% {t('admin.vsLastMonth')}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('admin.activeUsers')}</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              86% {t('admin.allUsers')}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 사용자 관리 테이블 */}
-      <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
-        <CardHeader className="flex flex-row items-center">
-          <div className="grid gap-2">
-            <CardTitle className="font-headline">{t('admin.userManagement')}</CardTitle>
-            <CardDescription>
-              {t('admin.userManagementDescription')}
-            </CardDescription>
-          </div>
-          <Button size="sm" className="ml-auto gap-1">
-            <Settings className="h-4 w-4" />
-            {t('admin.systemSettings')}
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('admin.table.userName')}</TableHead>
-                <TableHead>{t('admin.table.email')}</TableHead>
-                <TableHead>{t('admin.table.role')}</TableHead>
-                <TableHead>{t('admin.table.status')}</TableHead>
-                <TableHead>{t('admin.table.joinDate')}</TableHead>
-                <TableHead>
-                  <span className="sr-only">작업</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={user.isAdmin ? "default" : "secondary"}>
-                      {user.isAdmin ? t('admin.role.admin') : t('admin.role.user')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.status === "active" ? "default" : "secondary"}>
-                      {user.status === "active" ? t('admin.status.active') : t('admin.status.inactive')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{user.joinDate}</TableCell>
-                  <TableCell>
-                    <Button size="sm" variant="outline">
-                      {t('admin.editButton')}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* 대시보드 카드 */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <CardHeader>
+            <CardTitle className="font-korean">{t('monitoring.grafanaDashboard')}</CardTitle>
+            <CardDescription className="font-korean">{t('monitoring.grafanaDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border">
+              <div className="text-center text-muted-foreground">
+                <BarChart3 className="h-16 w-16 mx-auto" />
+                <p className="mt-4 font-korean">{t('monitoring.grafanaEmbed')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <CardHeader>
+            <CardTitle className="font-korean">{t('monitoring.kibanaDashboard')}</CardTitle>
+            <CardDescription className="font-korean">{t('monitoring.kibanaDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border">
+              <div className="text-center text-muted-foreground">
+                <BarChart3 className="h-16 w-16 mx-auto" />
+                 <p className="mt-4 font-korean">{t('monitoring.kibanaEmbed')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 }

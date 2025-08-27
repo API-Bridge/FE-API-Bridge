@@ -22,34 +22,34 @@ export default function LoginPage() {
             <div className="inline-block bg-primary text-primary-foreground p-3 rounded-lg mb-4 mx-auto">
                <CodeXml className="h-8 w-8" />
             </div>
-            <CardTitle className="text-3xl font-headline">{t('login.title')}</CardTitle>
-            <CardDescription>{t('login.description')}</CardDescription>
+            <CardTitle className="text-3xl font-korean">{t('login.title')}</CardTitle>
+            <CardDescription className="font-korean">{t('login.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{t('login.email')}</Label>
+                <Label htmlFor="email" className="font-korean">{t('login.email')}</Label>
                 <Input id="email" type="email" placeholder={t('login.emailPlaceholder')} required />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">{t('login.password')}</Label>
-                  <Link href="#" className="ml-auto inline-block text-sm underline hover:text-primary">
+                  <Label htmlFor="password" className="font-korean">{t('login.password')}</Label>
+                  <Link href="#" className="ml-auto inline-block text-sm underline hover:text-primary font-korean">
                     {t('login.forgotPassword')}
                   </Link>
                 </div>
                 <Input id="password" type="password" required />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold" asChild>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold font-korean" asChild>
                 <Link href="/dashboard">{t('login.signIn')}</Link>
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full font-korean">
                 {t('login.signInGoogle')}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm font-korean">
               {t('login.noAccount')}{" "}
-              <Link href="#" className="underline hover:text-primary">
+              <Link href="#" className="underline hover:text-primary font-korean">
                 {t('login.signUp')}
               </Link>
             </div>
@@ -61,13 +61,13 @@ export default function LoginPage() {
         <div className="flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <Server className="h-6 w-6 text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]" />
-            <p className="text-center text-sm leading-loose text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)] md:text-left">
+            <p className="text-center text-sm leading-loose text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)] md:text-left font-korean">
               {t('footer.built')}{" "}
               <a
                 href="#"
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium underline underline-offset-4 text-white hover:text-primary transition-colors"
+                className="font-medium underline underline-offset-4 text-white hover:text-primary transition-colors font-korean"
               >
                 {t('footer.github')}
               </a>

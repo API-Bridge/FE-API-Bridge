@@ -14,7 +14,7 @@ import { useTheme } from "@/contexts/theme-context";
 import { useLanguage } from "@/contexts/language-context";
 
 export function ThemeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { t } = useLanguage();
 
   return (
@@ -28,10 +28,20 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          {t('theme.light')}
+          <div className="flex items-center justify-between w-full">
+            <span>{t('theme.light')}</span>
+            {theme === 'light' && (
+              <div className="w-2 h-2 bg-green-500 rounded-full ml-2" />
+            )}
+          </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          {t('theme.dark')}
+          <div className="flex items-center justify-between w-full">
+            <span>{t('theme.dark')}</span>
+            {theme === 'dark' && (
+              <div className="w-2 h-2 bg-green-500 rounded-full ml-2" />
+            )}
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

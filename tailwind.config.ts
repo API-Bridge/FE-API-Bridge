@@ -19,6 +19,7 @@ export default {
       fontFamily: {
         body: ['Nunito', 'sans-serif'],
         headline: ['Comfortaa', 'sans-serif'],
+        korean: ['Chiron GoRound TC', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

@@ -36,42 +36,42 @@ export default function MonitoringPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('monitoring.systemStatus')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('monitoring.systemStatus')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{t('monitoring.statusHealthy')}</div>
-            <p className="text-xs text-muted-foreground">{t('monitoring.lastCheck')}: 1분 전</p>
+            <div className="text-2xl font-bold text-primary font-korean">{t('monitoring.statusHealthy')}</div>
+            <p className="text-xs text-muted-foreground font-korean">{t('monitoring.lastCheck')}: 1분 전</p>
           </CardContent>
         </Card>
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('monitoring.apiSources')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('monitoring.apiSources')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">{t('monitoring.connectedHealthy')}</p>
+            <div className="text-2xl font-bold font-korean">12</div>
+            <p className="text-xs text-muted-foreground font-korean">{t('monitoring.connectedHealthy')}</p>
           </CardContent>
         </Card>
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('monitoring.activeUsers')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('monitoring.activeUsers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">84</div>
-            <p className="text-xs text-muted-foreground">{t('monitoring.onlineLast15')}</p>
+            <div className="text-2xl font-bold font-korean">84</div>
+            <p className="text-xs text-muted-foreground font-korean">{t('monitoring.onlineLast15')}</p>
           </CardContent>
         </Card>
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('monitoring.securityAlerts')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('monitoring.securityAlerts')}</CardTitle>
             <ShieldAlert className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">{t('monitoring.noCriticalAlerts')}</p>
+            <div className="text-2xl font-bold font-korean">0</div>
+            <p className="text-xs text-muted-foreground font-korean">{t('monitoring.noCriticalAlerts')}</p>
           </CardContent>
         </Card>
       </div>
@@ -79,28 +79,28 @@ export default function MonitoringPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader>
-            <CardTitle className="font-headline">{t('monitoring.grafanaDashboard')}</CardTitle>
-            <CardDescription>{t('monitoring.grafanaDescription')}</CardDescription>
+            <CardTitle className="font-headline font-korean">{t('monitoring.grafanaDashboard')}</CardTitle>
+            <CardDescription className="font-korean">{t('monitoring.grafanaDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border">
               <div className="text-center text-muted-foreground">
                 <BarChart className="h-16 w-16 mx-auto" />
-                <p className="mt-4">{t('monitoring.grafanaEmbed')}</p>
+                <p className="mt-4 font-korean">{t('monitoring.grafanaEmbed')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader>
-            <CardTitle className="font-headline">{t('monitoring.kibanaDashboard')}</CardTitle>
-            <CardDescription>{t('monitoring.kibanaDescription')}</CardDescription>
+            <CardTitle className="font-headline font-korean">{t('monitoring.kibanaDashboard')}</CardTitle>
+            <CardDescription className="font-korean">{t('monitoring.kibanaDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border">
               <div className="text-center text-muted-foreground">
                 <BarChart className="h-16 w-16 mx-auto" />
-                 <p className="mt-4">{t('monitoring.kibanaEmbed')}</p>
+                 <p className="mt-4 font-korean">{t('monitoring.kibanaEmbed')}</p>
               </div>
             </div>
           </CardContent>
@@ -109,26 +109,26 @@ export default function MonitoringPage() {
 
        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader>
-          <CardTitle className="font-headline">{t('monitoring.userActivity')}</CardTitle>
-          <CardDescription>{t('monitoring.userActivityDescription')}</CardDescription>
+          <CardTitle className="font-headline font-korean">{t('monitoring.userActivity')}</CardTitle>
+          <CardDescription className="font-korean">{t('monitoring.userActivityDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{t('monitoring.table.user')}</TableHead>
-                <TableHead>{t('monitoring.table.action')}</TableHead>
-                <TableHead>{t('monitoring.table.timestamp')}</TableHead>
-                <TableHead>{t('monitoring.table.ipAddress')}</TableHead>
+                <TableHead className="font-korean">{t('monitoring.table.user')}</TableHead>
+                <TableHead className="font-korean">{t('monitoring.table.action')}</TableHead>
+                <TableHead className="font-korean">{t('monitoring.table.timestamp')}</TableHead>
+                <TableHead className="font-korean">{t('monitoring.table.ipAddress')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentActivities.map((activity, index) => (
                 <TableRow key={index}>
-                  <TableCell className="font-medium">{activity.user}</TableCell>
-                  <TableCell>{activity.action}</TableCell>
-                  <TableCell className="text-muted-foreground">{activity.timestamp}</TableCell>
-                  <TableCell className="text-muted-foreground">{activity.ip}</TableCell>
+                  <TableCell className="font-medium font-korean">{activity.user}</TableCell>
+                  <TableCell className="font-korean">{activity.action}</TableCell>
+                  <TableCell className="text-muted-foreground font-korean">{activity.timestamp}</TableCell>
+                  <TableCell className="text-muted-foreground font-korean">{activity.ip}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
