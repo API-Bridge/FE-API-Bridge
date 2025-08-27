@@ -124,7 +124,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('dashboard.stats.totalApis')}</CardTitle>
             <ApiIcon className="h-4 w-4 text-muted-foreground" />
@@ -136,7 +136,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('dashboard.stats.activeKeys')}</CardTitle>
             <KeyRound className="h-4 w-4 text-muted-foreground" />
@@ -148,7 +148,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('dashboard.stats.totalCalls')}</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +160,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('dashboard.stats.uptime')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -174,7 +174,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="dark:bg-card/30 dark:backdrop-blur-md dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
             <CardTitle className="font-headline">{t('dashboard.myApis')}</CardTitle>
@@ -182,22 +182,16 @@ export default function Dashboard() {
               {t('dashboard.myApis.description')}
             </CardDescription>
           </div>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t('dashboard.search.placeholder') || "API 검색..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 w-64"
+                className="pl-8 w-80"
               />
             </div>
-            <Button asChild size="sm" className="gap-1">
-              <Link href="/dashboard/suggestions">
-                {t('dashboard.createApi')}
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -205,7 +199,7 @@ export default function Dashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('dashboard.table.apiName')}</TableHead>
-                <TableHead>{t('dashboard.table.status')}</TableHead>
+                <TableHead className="text-center">{t('dashboard.table.status')}</TableHead>
                 <TableHead className="text-right">{t('dashboard.table.calls')}</TableHead>
                 <TableHead className="text-center">{t('dashboard.table.sharing')}</TableHead>
                 <TableHead>
@@ -237,7 +231,7 @@ export default function Dashboard() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Badge
                       variant={
                         api.status === "active"

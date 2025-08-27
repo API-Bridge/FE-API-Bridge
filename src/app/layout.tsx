@@ -25,7 +25,7 @@ export default function RootLayout({
       </head>
       <body className="font-body bg-background text-foreground antialiased font-semibold">
         <LanguageProvider>
-          <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+          <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
             <UserProvider>
               {children}
               <Toaster />

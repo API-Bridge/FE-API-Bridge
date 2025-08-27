@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
+import { useLanguage } from "@/contexts/language-context";
 import { 
   Card, 
   CardContent, 
@@ -45,6 +46,7 @@ const mockStats = {
 
 export default function AdminPage() {
   const { user, isAdmin } = useUser();
+  const { t } = useLanguage();
   const router = useRouter();
 
   // 관리자가 아닌 경우 접근 차단
@@ -60,8 +62,8 @@ export default function AdminPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium">접근 권한이 없습니다.</p>
-          <p className="text-sm text-muted-foreground">관리자만 접근할 수 있는 페이지입니다.</p>
+          <p className="text-lg font-medium">{t('admin.accessDenied')}</p>
+          <p className="text-sm text-muted-foreground">{t('admin.adminOnly')}</p>
         </div>
       </div>
     );
@@ -71,82 +73,82 @@ export default function AdminPage() {
     <>
       {/* 상단 통계 카드 */}
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 사용자</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.totalUsers')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockStats.totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              +12 지난 달 대비
+              +12 {t('admin.lastMonth')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 API</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.totalApis')}</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockStats.totalApis}</div>
             <p className="text-xs text-muted-foreground">
-              +5 지난 주 대비
+              +5 {t('admin.lastWeek')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 호출 수</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.totalCalls')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockStats.totalCalls}</div>
             <p className="text-xs text-muted-foreground">
-              +23% 지난 달 대비
+              +23% {t('admin.vsLastMonth')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">활성 사용자</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('admin.activeUsers')}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{mockStats.activeUsers}</div>
             <p className="text-xs text-muted-foreground">
-              86% 전체 사용자 중
+              86% {t('admin.allUsers')}
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* 사용자 관리 테이블 */}
-      <Card>
+      <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
-            <CardTitle className="font-headline">사용자 관리</CardTitle>
+            <CardTitle className="font-headline">{t('admin.userManagement')}</CardTitle>
             <CardDescription>
-              시스템에 등록된 모든 사용자를 관리할 수 있습니다.
+              {t('admin.userManagementDescription')}
             </CardDescription>
           </div>
           <Button size="sm" className="ml-auto gap-1">
             <Settings className="h-4 w-4" />
-            시스템 설정
+            {t('admin.systemSettings')}
           </Button>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>사용자 이름</TableHead>
-                <TableHead>이메일</TableHead>
-                <TableHead>권한</TableHead>
-                <TableHead>상태</TableHead>
-                <TableHead>가입일</TableHead>
+                <TableHead>{t('admin.table.userName')}</TableHead>
+                <TableHead>{t('admin.table.email')}</TableHead>
+                <TableHead>{t('admin.table.role')}</TableHead>
+                <TableHead>{t('admin.table.status')}</TableHead>
+                <TableHead>{t('admin.table.joinDate')}</TableHead>
                 <TableHead>
                   <span className="sr-only">작업</span>
                 </TableHead>
@@ -159,18 +161,18 @@ export default function AdminPage() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={user.isAdmin ? "default" : "secondary"}>
-                      {user.isAdmin ? "관리자" : "일반 사용자"}
+                      {user.isAdmin ? t('admin.role.admin') : t('admin.role.user')}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={user.status === "active" ? "default" : "secondary"}>
-                      {user.status === "active" ? "활성" : "비활성"}
+                      {user.status === "active" ? t('admin.status.active') : t('admin.status.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell>{user.joinDate}</TableCell>
                   <TableCell>
                     <Button size="sm" variant="outline">
-                      편집
+                      {t('admin.editButton')}
                     </Button>
                   </TableCell>
                 </TableRow>

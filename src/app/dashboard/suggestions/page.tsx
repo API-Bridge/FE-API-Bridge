@@ -1,15 +1,19 @@
 
+"use client";
+
 import { SuggestionsForm } from "@/components/suggestions-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function SuggestionsPage() {
+  const { t } = useLanguage();
   return (
     <div className="flex justify-center items-start pt-0 md:pt-8">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">커스텀API 생성</CardTitle>
+          <CardTitle className="font-headline text-2xl">{t('suggestions.title')}</CardTitle>
           <CardDescription>
-            필요한 데이터를 설명하면 AI가 커스텀 API 생성을 도와드립니다.
+            {t('suggestions.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>

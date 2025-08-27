@@ -12,8 +12,10 @@ import { Loader2, Wand2 } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { useLanguage } from "@/contexts/language-context";
 
 export function SuggestionsForm() {
+  const { t } = useLanguage();
   const [dataDescription, setDataDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SuggestApisOutput | null>(null);
@@ -43,10 +45,10 @@ export function SuggestionsForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid w-full gap-2">
-        <Label htmlFor="data-description" className="font-semibold">데이터 설명</Label>
+        <Label htmlFor="data-description" className="font-semibold">{t('suggestions.dataDescription')}</Label>
         <Textarea
           id="data-description"
-          placeholder="예: '올해 캐나다의 모든 공휴일 목록이 필요합니다.'"
+          placeholder={t('suggestions.examplePlaceholder')}
           value={dataDescription}
           onChange={(e) => setDataDescription(e.target.value)}
           rows={4}
@@ -54,14 +56,14 @@ export function SuggestionsForm() {
           className="focus:!ring-primary focus:ring-2 transition-all"
         />
         <p className="text-sm text-muted-foreground">
-          찾고 있는 데이터에 대한 명확하고 간결한 설명을 제공하십시오.
+          {t('suggestions.helpText')}
         </p>
       </div>
 
 
       <Button type="submit" className="w-full font-bold" disabled={loading || !dataDescription}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-        API 생성하기
+        {t('suggestions.createButton')}
       </Button>
 
       {loading && (
@@ -81,8 +83,8 @@ export function SuggestionsForm() {
       {result && (
         <Card className="bg-gradient-to-br from-card to-muted/50">
           <CardHeader>
-            <CardTitle className="text-xl font-headline">추천 API</CardTitle>
-            <CardDescription>귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.</CardDescription>
+            <CardTitle className="text-xl font-headline">{t('suggestions.recommendedTitle') || '추천 API'}</CardTitle>
+            <CardDescription>{t('suggestions.recommendedDescription') || '귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.'}</CardDescription>
           </CardHeader>
           <CardContent>
             {result.apiSuggestions.length > 0 ? (
@@ -96,9 +98,9 @@ export function SuggestionsForm() {
             ) : (
              <Alert>
                 <Wand2 className="h-4 w-4" />
-                <AlertTitle>결과를 찾을 수 없음</AlertTitle>
+                <AlertTitle>{t('suggestions.noResultsTitle') || '결과를 찾을 수 없음'}</AlertTitle>
                 <AlertDescription>
-                    AI가 귀하의 쿼리에 대한 API를 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.
+                    {t('suggestions.noResultsDescription') || 'AI가 귀하의 쿼리에 대한 API를 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.'}
                 </AlertDescription>
             </Alert>
             )}

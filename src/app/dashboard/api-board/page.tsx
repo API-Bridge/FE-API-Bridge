@@ -28,40 +28,43 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/language-context";
 
-const sharedApis = [
+const getSharedApis = (t: (key: string) => string) => [
   {
-    name: "영화 추천 API",
+    name: t('api.movieRecommendation'),
     author: "user123",
-    description: "개인 취향 기반 영화 추천 시스템",
+    description: t('api.movieRecommendationDesc'),
     uses: 245,
-    shared: "2일 전",
+    shared: `2 ${t('time.daysAgo')}`,
   },
   {
-    name: "암호화폐 가격 트래커",
+    name: t('api.cryptoPriceTracker'),
     author: "cryptodev",
-    description: "실시간 암호화폐 가격 추적 API",
+    description: t('api.cryptoPriceTrackerDesc'),
     uses: 892,
-    shared: "5일 전",
+    shared: `5 ${t('time.daysAgo')}`,
   },
   {
-    name: "소셜 미디어 분석기",
+    name: t('api.socialMediaAnalyzer'),
     author: "dataanalyst",
-    description: "SNS 게시물 감정 분석 및 트렌드 파악",
+    description: t('api.socialMediaAnalyzerDesc'),
     uses: 156,
-    shared: "1주 전",
+    shared: `1 ${t('time.weeksAgo')}`,
   },
   {
-    name: "음식 배달 최적화",
+    name: t('api.deliveryOptimizer'),
     author: "foodtech",
-    description: "배달 경로 최적화 및 시간 예측",
+    description: t('api.deliveryOptimizerDesc'),
     uses: 67,
-    shared: "3일 전",
+    shared: `3 ${t('time.daysAgo')}`,
   },
 ];
 
 export default function APIBoard() {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
+  const sharedApis = getSharedApis(t);
 
   const filteredApis = sharedApis.filter(
     (api) =>
@@ -72,48 +75,48 @@ export default function APIBoard() {
 
   const handleCopyAPI = (apiName: string) => {
     // API 복사 로직
-    alert(`${apiName}을(를) 내 대시보드로 복사했습니다!`);
+    alert(`${apiName}${t('apiBoard.importButton')}`);
   };
 
   return (
     <>
       {/* 상단 통계 박스 3개 */}
       <div className="grid gap-4 md:grid-cols-3 md:gap-8">
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">내가 공유한 키</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('apiBoard.myShared')}</CardTitle>
             <Share2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
             <p className="text-xs text-muted-foreground">
-              이번 달 +1
+              +1 {t('apiBoard.thisMonth')}
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">가져온 키</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('apiBoard.imported')}</CardTitle>
             <Download className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">7</div>
             <p className="text-xs text-muted-foreground">
-              이번 달 +2
+              +2 {t('apiBoard.thisMonth')}
             </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">총 게시판 키</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('apiBoard.totalBoard')}</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1,247</div>
             <p className="text-xs text-muted-foreground">
-              이번 주 +23
+              +23 {t('apiBoard.thisWeek')}
             </p>
           </CardContent>
         </Card>
@@ -121,19 +124,19 @@ export default function APIBoard() {
 
 
       {/* 공유된 API 목록 */}
-      <Card>
+      <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
-            <CardTitle className="font-headline">공유된 API</CardTitle>
+            <CardTitle className="font-headline">{t('apiBoard.sharedApis')}</CardTitle>
             <CardDescription>
-              커뮤니티에서 공유한 커스텀 API를 탐색하고 사용해보세요.
+              {t('apiBoard.description')}
             </CardDescription>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="API 이름, 설명 또는 작성자로 검색..."
+                placeholder={t('apiBoard.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 w-64"
@@ -145,11 +148,11 @@ export default function APIBoard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>API 이름</TableHead>
-                <TableHead>작성자</TableHead>
-                <TableHead>설명</TableHead>
-                <TableHead className="text-right">사용 횟수</TableHead>
-                <TableHead className="text-right">공유일</TableHead>
+                <TableHead>{t('apiBoard.table.apiName')}</TableHead>
+                <TableHead>{t('apiBoard.table.author')}</TableHead>
+                <TableHead>{t('apiBoard.table.description')}</TableHead>
+                <TableHead className="text-right">{t('apiBoard.table.usageCount')}</TableHead>
+                <TableHead className="text-right">{t('apiBoard.table.sharedDate')}</TableHead>
                 <TableHead>
                   <span className="sr-only">작업</span>
                 </TableHead>
@@ -180,7 +183,7 @@ export default function APIBoard() {
                       className="gap-2"
                     >
                       <Copy className="h-4 w-4" />
-                      가져오기
+                      {t('apiBoard.importButton')}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -191,9 +194,9 @@ export default function APIBoard() {
           {filteredApis.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">검색 결과가 없습니다</p>
+              <p className="text-lg font-medium">{t('apiBoard.noResults')}</p>
               <p className="text-sm text-muted-foreground">
-                다른 검색어를 시도해보세요.
+                {t('apiBoard.noResultsDescription')}
               </p>
             </div>
           )}
