@@ -87,7 +87,7 @@ export default function DashboardLayout({
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr] relative">
       <AnimatedBackground />
-      <div className="hidden border-r bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 md:block relative z-10">
+      <div className="hidden border-r bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 md:block sticky top-0 h-screen z-10">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b border-white/20 dark:border-white/10 px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold font-korean">
@@ -110,10 +110,6 @@ export default function DashboardLayout({
       </div>
       <div className="flex flex-col relative z-10">
         <header className="flex h-14 items-center gap-4 border-b bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 px-4 lg:h-[60px] lg:px-6">
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
-          </div>
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -146,6 +142,10 @@ export default function DashboardLayout({
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1" />
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">

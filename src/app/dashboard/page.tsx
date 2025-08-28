@@ -260,7 +260,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card className="dark:bg-card/30 dark:backdrop-blur-md dark:border-white/10">
+      <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
             <CardTitle className="font-korean">{t('dashboard.myApis')}</CardTitle>
@@ -290,7 +290,7 @@ export default function Dashboard() {
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={t('dashboard.search.placeholder') || "API 검색..."}
+                placeholder="API 이름을 검색하세요"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 w-80 font-korean"
@@ -311,7 +311,7 @@ export default function Dashboard() {
             </TableHeader>
             <TableBody>
               {filteredApis.map((api) => (
-                <TableRow key={api.name} className="cursor-pointer hover:bg-muted/50" onClick={() => openApiDetail(api)}>
+                <TableRow key={api.name} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-white/10" onClick={() => openApiDetail(api)}>
                   <TableCell className="font-medium font-korean w-[40%]">
                     <div>
                       <div className="font-korean">
@@ -333,6 +333,11 @@ export default function Dashboard() {
                           ? "destructive"
                           : "secondary"
                       }
+                      className={
+                        api.status === "active"
+                          ? "bg-green-400 hover:bg-green-500 text-white dark:bg-white dark:text-black dark:hover:bg-white/90"
+                          : ""
+                      }
                     >
                       {t(`dashboard.status.${api.status}`)}
                     </Badge>
@@ -352,7 +357,11 @@ export default function Dashboard() {
                             e.stopPropagation();
                             toggleShare(api.name);
                           }}
-                          className="gap-1 w-20 font-korean"
+                          className={`gap-1 w-20 font-korean font-bold ${
+                            apiSharedStatus[api.name] 
+                              ? "bg-sky-500 hover:bg-sky-600 text-white dark:bg-white dark:text-black dark:hover:bg-white/90" 
+                              : ""
+                          }`}
                         >
                           <Share2 className="h-3 w-3" />
                           {apiSharedStatus[api.name] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
@@ -364,13 +373,13 @@ export default function Dashboard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-korean"
+                      className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-white dark:text-red-400 dark:hover:bg-red-950 font-korean"
                       onClick={(e) => {
                         e.stopPropagation();
                         openDeleteDialog(api.name);
                       }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 dark:text-white" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -428,29 +437,28 @@ export default function Dashboard() {
           <div className="space-y-6 mt-4">
             {/* API 기본 정보 */}
             <div>
-              <h3 className="font-semibold text-lg mb-3 font-korean">기본 정보</h3>
+              <h3 className="font-semibold text-lg mb-3 font-korean">{t('dashboard.modal.basicInfo')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">API 경로</label>
+                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.apiPath')}</label>
                   <div className="px-3 py-2 bg-muted rounded-md font-mono text-sm">
                     {selectedApi?.path}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">상태</label>
+                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.status')}</label>
                   <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
-                    {selectedApi?.status === 'active' ? '활성' : 
-                     selectedApi?.status === 'inactive' ? '비활성' : '오류'}
+                    {t(`dashboard.status.${selectedApi?.status}`)}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">총 호출 수</label>
+                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.totalCalls')}</label>
                   <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
                     {selectedApi?.calls}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">성공률</label>
+                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.successRate')}</label>
                   <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
                     {selectedApi?.successRate}
                   </div>
@@ -462,7 +470,7 @@ export default function Dashboard() {
 
             {/* API 파라미터 */}
             <div>
-              <h3 className="font-semibold text-lg mb-3 font-korean">파라미터</h3>
+              <h3 className="font-semibold text-lg mb-3 font-korean">{t('dashboard.modal.parameters')}</h3>
               {selectedApi?.parameters && selectedApi.parameters.length > 0 ? (
                 <div className="space-y-3">
                   {selectedApi.parameters.map((param: any, index: number) => (
@@ -476,7 +484,7 @@ export default function Dashboard() {
                         </span>
                         {param.required && (
                           <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
-                            필수
+                            {t('dashboard.modal.required')}
                           </span>
                         )}
                       </div>
@@ -487,7 +495,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm font-korean">파라미터가 없습니다.</p>
+                <p className="text-muted-foreground text-sm font-korean">{t('dashboard.modal.noParameters')}</p>
               )}
             </div>
 
@@ -495,9 +503,9 @@ export default function Dashboard() {
               <>
                 <Separator />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2 font-korean">원작자 정보</h3>
+                  <h3 className="font-semibold text-lg mb-2 font-korean">{t('dashboard.modal.originalAuthor')}</h3>
                   <p className="text-sm text-muted-foreground font-korean">
-                    이 API는 <strong>@{selectedApi.originalAuthor}</strong>님이 공유한 API입니다.
+                    {t('dashboard.modal.sharedBy')} <strong>@{selectedApi.originalAuthor}</strong>님이 공유한 API입니다.
                   </p>
                 </div>
               </>
