@@ -52,25 +52,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/language-context";
 
 const getApiData = (translateIfExists: (key: string, fallback: string) => string) => [
   {
-    name: translateIfExists("api.weather", "날씨 데이터 API"),
-    nameKey: "api.weather",
+    name: translateIfExists("api.weatherData", "날씨 데이터 API"),
+    nameKey: "api.weatherData",
     status: "active",
     calls: "1,203,489",
     successRate: "99.8%",
     isShared: true,
     isImported: false,
     originalAuthor: null,
-    path: "/api/weather",
+    path: "/api/weather/{city}",
     description: "현재 날씨 정보와 5일 예보를 제공하는 API입니다.",
-    parameters: [
-      { name: "city", type: "string", required: true, description: "도시 이름" },
+    pathParameters: [
+      { name: "city", type: "string", required: true, description: "도시 이름" }
+    ],
+    queryParameters: [
       { name: "units", type: "string", required: false, description: "온도 단위 (metric, imperial)" },
       { name: "lang", type: "string", required: false, description: "언어 코드 (ko, en)" }
-    ]
+    ],
+    requestBody: []
   },
   {
     name: translateIfExists("api.stockMarket", "주식 시장 피드"),
@@ -81,12 +90,15 @@ const getApiData = (translateIfExists: (key: string, fallback: string) => string
     isShared: false,
     isImported: false,
     originalAuthor: null,
-    path: "/api/stocks",
+    path: "/api/stocks/{symbol}",
     description: "실시간 주식 시세와 거래 정보를 제공하는 API입니다.",
-    parameters: [
-      { name: "symbol", type: "string", required: true, description: "주식 심볼 (AAPL, GOOGL 등)" },
+    pathParameters: [
+      { name: "symbol", type: "string", required: true, description: "주식 심볼 (AAPL, GOOGL 등)" }
+    ],
+    queryParameters: [
       { name: "interval", type: "string", required: false, description: "데이터 간격 (1m, 5m, 1h, 1d)" }
-    ]
+    ],
+    requestBody: []
   },
   {
     name: translateIfExists("api.locationService", "사용자 위치정보 서비스"),
@@ -99,11 +111,13 @@ const getApiData = (translateIfExists: (key: string, fallback: string) => string
     originalAuthor: "locationdev",
     path: "/api/location",
     description: "GPS 좌표를 이용하여 주소와 주변 정보를 제공하는 API입니다.",
-    parameters: [
+    pathParameters: [],
+    queryParameters: [
       { name: "lat", type: "number", required: true, description: "위도" },
       { name: "lng", type: "number", required: true, description: "경도" },
       { name: "radius", type: "number", required: false, description: "검색 반경 (km)" }
-    ]
+    ],
+    requestBody: []
   },
   {
     name: translateIfExists("api.productCatalog", "제품 카탈로그 API"),
@@ -116,11 +130,13 @@ const getApiData = (translateIfExists: (key: string, fallback: string) => string
     originalAuthor: null,
     path: "/api/products",
     description: "온라인 쇼핑몰의 제품 정보를 검색하고 관리할 수 있는 API입니다.",
-    parameters: [
+    pathParameters: [],
+    queryParameters: [
       { name: "category", type: "string", required: false, description: "제품 카테고리" },
       { name: "search", type: "string", required: false, description: "검색 키워드" },
       { name: "limit", type: "number", required: false, description: "결과 개수 제한" }
-    ]
+    ],
+    requestBody: []
   },
   {
     name: translateIfExists("api.paymentGateway", "결제 게이트웨이 브릿지"),
@@ -133,7 +149,9 @@ const getApiData = (translateIfExists: (key: string, fallback: string) => string
     originalAuthor: "paymentexpert",
     path: "/api/payment",
     description: "다양한 결제 수단을 통합하여 안전한 결제 처리를 제공하는 API입니다.",
-    parameters: [
+    pathParameters: [],
+    queryParameters: [],
+    requestBody: [
       { name: "amount", type: "number", required: true, description: "결제 금액" },
       { name: "currency", type: "string", required: true, description: "통화 종류 (KRW, USD)" },
       { name: "method", type: "string", required: true, description: "결제 수단 (card, bank, mobile)" }
@@ -393,8 +411,6 @@ export default function Dashboard() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent 
           className="sm:max-w-[425px]"
-          onPointerDownOutside={closeDeleteDialog}
-          onInteractOutside={closeDeleteDialog}
         >
           <AlertDialogHeader>
             <AlertDialogTitle className="font-korean">API를 삭제하시겠습니까?</AlertDialogTitle>
@@ -471,32 +487,106 @@ export default function Dashboard() {
             {/* API 파라미터 */}
             <div>
               <h3 className="font-semibold text-lg mb-3 font-korean">{t('dashboard.modal.parameters')}</h3>
-              {selectedApi?.parameters && selectedApi.parameters.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedApi.parameters.map((param: any, index: number) => (
-                    <div key={index} className="border rounded-lg p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
-                          {param.name}
-                        </code>
-                        <span className="text-sm text-muted-foreground">
-                          ({param.type})
-                        </span>
-                        {param.required && (
-                          <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
-                            {t('dashboard.modal.required')}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground font-korean">
-                        {param.description}
-                      </p>
+              <Tabs defaultValue="path" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="path" className="font-korean">
+                    Path Parameters ({selectedApi?.pathParameters?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="query" className="font-korean">
+                    Query Parameters ({selectedApi?.queryParameters?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="body" className="font-korean">
+                    Request Body ({selectedApi?.requestBody?.length || 0})
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="path" className="mt-4">
+                  {selectedApi?.pathParameters && selectedApi.pathParameters.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedApi.pathParameters.map((param: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
+                              {param.name}
+                            </code>
+                            <span className="text-sm text-muted-foreground">
+                              ({param.type})
+                            </span>
+                            {param.required && (
+                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
+                                {t('dashboard.modal.required')}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground font-korean">
+                            {param.description}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-sm font-korean">{t('dashboard.modal.noParameters')}</p>
-              )}
+                  ) : (
+                    <p className="text-muted-foreground text-sm font-korean">Path Parameter가 없습니다.</p>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="query" className="mt-4">
+                  {selectedApi?.queryParameters && selectedApi.queryParameters.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedApi.queryParameters.map((param: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
+                              {param.name}
+                            </code>
+                            <span className="text-sm text-muted-foreground">
+                              ({param.type})
+                            </span>
+                            {param.required && (
+                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
+                                {t('dashboard.modal.required')}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground font-korean">
+                            {param.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm font-korean">Query Parameter가 없습니다.</p>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="body" className="mt-4">
+                  {selectedApi?.requestBody && selectedApi.requestBody.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedApi.requestBody.map((param: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
+                              {param.name}
+                            </code>
+                            <span className="text-sm text-muted-foreground">
+                              ({param.type})
+                            </span>
+                            {param.required && (
+                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
+                                {t('dashboard.modal.required')}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground font-korean">
+                            {param.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm font-korean">Request Body가 없습니다.</p>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
 
             {selectedApi?.isImported && selectedApi?.originalAuthor && (

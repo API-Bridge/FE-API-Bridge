@@ -3,7 +3,34 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, Server, Zap, Shield } from "lucide-react";
+import { 
+  ArrowRight, 
+  Server, 
+  Zap, 
+  Shield, 
+  Building2,
+  AlertTriangle,
+  Leaf,
+  Home,
+  FileText,
+  Users,
+  Wind,
+  Flame,
+  Lightbulb,
+  Ship,
+  Fish,
+  Waves,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  Music,
+  BarChart3,
+  Building,
+  TreePine,
+  Globe,
+  Briefcase,
+  Pill
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -97,21 +124,90 @@ export default function LandingPage() {
           filter: 'blur(0px)',
           rotate: 0,
           y: 0,
-          duration: 0.8,
+          duration: 1.2,
           ease: 'power2.out',
-          stagger: 0.2,
+          stagger: 0.3,
           scrollTrigger: {
             trigger: cardElements[0],
-            start: 'top bottom-=10%',
-            end: '+=800px',
-            scrub: 1,
+            start: 'top bottom-=30%',
+            end: 'bottom center+=100px',
+            scrub: false,
+            toggleActions: 'play none none reverse',
             onComplete: () => {
-              // 애니메이션이 완료되지 않은 경우 강제로 완료
               gsap.set(cardElements, {
                 opacity: 1,
                 filter: 'blur(0px)',
                 rotate: 0,
                 y: 0
+              });
+            }
+          },
+        }
+      );
+    }
+
+    // API Categories 제목 애니메이션
+    const apiTitleChars = document.querySelectorAll('[class*="api-title-char-"]');
+    if (apiTitleChars.length > 0) {
+      gsap.fromTo(
+        apiTitleChars,
+        { 
+          opacity: 0.1, 
+          filter: 'blur(8px)',
+          scale: 0.8,
+          willChange: 'opacity, filter, transform'
+        },
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          scale: 1,
+          duration: 0.8,
+          ease: 'back.out(1.7)',
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: '.api-categories-title',
+            start: 'top bottom-=20%',
+            end: 'bottom center',
+            scrub: 1,
+          },
+        }
+      );
+    }
+
+    // API Category Cards 애니메이션
+    const categoryCards = document.querySelectorAll('[class*="api-category-"]');
+    if (categoryCards.length > 0) {
+      gsap.fromTo(
+        categoryCards,
+        { 
+          opacity: 0, 
+          scale: 0.8,
+          rotateY: 15,
+          y: 60,
+          filter: 'blur(6px)'
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          rotateY: 0,
+          y: 0,
+          filter: 'blur(0px)',
+          duration: 1.5,
+          ease: 'back.out(1.2)',
+          stagger: 0.2,
+          scrollTrigger: {
+            trigger: categoryCards[0],
+            start: 'top bottom-=40%',
+            end: 'bottom center+=200px',
+            scrub: false,
+            toggleActions: 'play none none reverse',
+            onComplete: () => {
+              gsap.set(categoryCards, {
+                opacity: 1,
+                scale: 1,
+                rotateY: 0,
+                y: 0,
+                filter: 'blur(0px)'
               });
             }
           },
@@ -144,6 +240,104 @@ export default function LandingPage() {
     },
   ];
 
+  const apiCategories = [
+    {
+      category: t('category.culture'),
+      icon: <Music className="w-8 h-8" />,
+      apis: [
+        { name: t('api.performance'), data: t('api.performance.data'), color: "from-pink-500 to-rose-500" },
+        { name: t('api.tourism'), data: t('api.tourism.data'), color: "from-purple-500 to-violet-500" }
+      ]
+    },
+    {
+      category: t('category.disaster'),
+      icon: <AlertTriangle className="w-8 h-8" />,
+      apis: [
+        { name: t('api.wildfire'), data: t('api.wildfire.data'), color: "from-orange-500 to-red-500" },
+        { name: t('api.fire'), data: t('api.fire.data'), color: "from-red-500 to-pink-500" }
+      ]
+    },
+    {
+      category: t('category.agriculture'),
+      icon: <Leaf className="w-8 h-8" />,
+      apis: [
+        { name: t('api.livestock'), data: t('api.livestock.data'), color: "from-green-500 to-emerald-500" },
+        { name: t('api.fishery'), data: t('api.fishery.data'), color: "from-blue-500 to-cyan-500" }
+      ]
+    },
+    {
+      category: t('category.realestate'),
+      icon: <Home className="w-8 h-8" />,
+      apis: [
+        { name: t('api.townhouse'), data: t('api.townhouse.data'), color: "from-indigo-500 to-blue-500" },
+        { name: t('api.apartment'), data: t('api.apartment.data'), color: "from-blue-500 to-indigo-500" },
+        { name: t('api.vehicle'), data: t('api.vehicle.data'), color: "from-gray-500 to-slate-500" }
+      ]
+    },
+    {
+      category: t('category.economy'),
+      icon: <BarChart3 className="w-8 h-8" />,
+      apis: [
+        { name: t('api.business'), data: t('api.business.data'), color: "from-yellow-500 to-orange-500" },
+        { name: t('api.ecos'), data: t('api.ecos.data'), color: "from-green-500 to-teal-500" },
+        { name: t('api.dart'), data: t('api.dart.data'), color: "from-blue-500 to-purple-500" },
+        { name: t('api.trade'), data: t('api.trade.data'), color: "from-teal-500 to-green-500" },
+        { name: t('api.trader'), data: t('api.trader.data'), color: "from-cyan-500 to-blue-500" }
+      ]
+    },
+    {
+      category: t('category.employment'),
+      icon: <Users className="w-8 h-8" />,
+      apis: [
+        { name: t('api.worknet'), data: t('api.worknet.data'), color: "from-violet-500 to-purple-500" },
+        { name: t('api.publicjob'), data: t('api.publicjob.data'), color: "from-indigo-500 to-violet-500" },
+        { name: t('api.venture'), data: t('api.venture.data'), color: "from-orange-500 to-yellow-500" }
+      ]
+    },
+    {
+      category: t('category.environment'),
+      icon: <Wind className="w-8 h-8" />,
+      apis: [
+        { name: t('api.airpollution'), data: t('api.airpollution.data'), color: "from-gray-500 to-blue-500" },
+        { name: t('api.weather'), data: t('api.weather.data'), color: "from-sky-500 to-blue-500" },
+        { name: t('api.earthquake'), data: t('api.earthquake.data'), color: "from-amber-500 to-orange-500" }
+      ]
+    },
+    {
+      category: t('category.transport'),
+      icon: <MapPin className="w-8 h-8" />,
+      apis: [
+        { name: t('api.subway'), data: t('api.subway.data'), color: "from-blue-500 to-indigo-500" },
+        { name: t('api.sgis'), data: t('api.sgis.data'), color: "from-green-500 to-blue-500" }
+      ]
+    },
+    {
+      category: t('category.legal'),
+      icon: <FileText className="w-8 h-8" />,
+      apis: [
+        { name: t('api.law'), data: t('api.law.data'), color: "from-slate-500 to-gray-500" },
+        { name: t('api.patent'), data: t('api.patent.data'), color: "from-purple-500 to-pink-500" }
+      ]
+    },
+    {
+      category: t('category.education'),
+      icon: <GraduationCap className="w-8 h-8" />,
+      apis: [
+        { name: t('api.neis'), data: t('api.neis.data'), color: "from-blue-500 to-green-500" },
+        { name: t('api.hospital'), data: t('api.hospital.data'), color: "from-red-500 to-pink-500" },
+        { name: t('api.medicine'), data: t('api.medicine.data'), color: "from-green-500 to-blue-500" }
+      ]
+    },
+    {
+      category: t('category.nature'),
+      icon: <TreePine className="w-8 h-8" />,
+      apis: [
+        { name: t('api.mountain'), data: t('api.mountain.data'), color: "from-green-500 to-teal-500" },
+        { name: t('api.safety'), data: t('api.safety.data'), color: "from-red-500 to-orange-500" }
+      ]
+    }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-background relative scrollbar-hide" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
       <AnimatedBackground />
@@ -171,7 +365,7 @@ export default function LandingPage() {
               {t('nav.pricing')}
             </Link>
             <Link
-              href="#"
+              href="#api-categories"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               {t('nav.docs')}
@@ -292,6 +486,139 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+            </div>
+          </div>
+        </section>
+
+        {/* API Categories Section */}
+        <section 
+          id="api-categories"
+          className="min-h-screen flex items-center justify-center py-16"
+        >
+          <div className="container flex max-w-[90rem] flex-col items-center space-y-16 text-center">
+            <div className="space-y-8">
+              <h2 
+                className="api-categories-title font-korean text-4xl leading-[1.1] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                style={{ willChange: 'transform, opacity, filter' }}
+              >
+                {t('apiCatalog.title').split('').map((char, index) => (
+                  <span 
+                    key={index} 
+                    className={`api-title-char-${index} inline-block`}
+                    style={{ 
+                      opacity: 0.1, 
+                      filter: 'blur(8px)',
+                      transform: 'scale(0.8)',
+                      willChange: 'opacity, filter, transform'
+                    }}
+                  >
+                    {char}
+                  </span>
+                ))}
+              </h2>
+              <p className="max-w-[90%] mx-auto leading-normal text-muted-foreground text-lg sm:text-xl md:text-2xl lg:text-3xl sm:leading-8 font-korean">
+                {t('apiCatalog.subtitle')}
+              </p>
+            </div>
+            
+            <div className="w-full grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {apiCategories.map((category, categoryIndex) => (
+                <div 
+                  key={categoryIndex}
+                  className={`api-category-${categoryIndex} group relative overflow-hidden rounded-3xl border p-6 transition-all duration-700 hover:scale-105 hover:shadow-2xl ${
+                    isDarkMode
+                      ? 'bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 hover:shadow-purple-400/20'
+                      : 'bg-white/20 backdrop-blur-sm border-white/30 hover:bg-white/50 hover:border-sky-300/60 hover:shadow-sky-400/40'
+                  }`}
+                  style={{
+                    willChange: 'transform, opacity, filter',
+                    opacity: 0,
+                    transform: 'scale(0.8) rotateY(15deg) translateY(60px)',
+                    filter: 'blur(6px)'
+                  }}
+                >
+                  {/* Gradient Background Effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${
+                    isDarkMode
+                      ? 'from-primary/5 via-purple-500/5 to-pink-500/5'
+                      : 'from-sky-200/20 via-blue-200/20 to-cyan-200/20'
+                  }`} />
+                  
+                  {/* Category Header */}
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-center space-x-3">
+                      <div className="text-primary group-hover:scale-110 transition-transform duration-300">
+                        {category.icon}
+                      </div>
+                      <h3 className="font-bold text-xl md:text-2xl font-korean group-hover:text-primary transition-colors duration-300">
+                        {category.category}
+                      </h3>
+                    </div>
+                    
+                    {/* API Cards */}
+                    <div className="space-y-3 mt-6">
+                      {category.apis.map((api, apiIndex) => (
+                        <div 
+                          key={apiIndex}
+                          className={`relative overflow-hidden rounded-2xl p-4 shadow-lg transform transition-all duration-300 hover:scale-110 cursor-pointer ${
+                            isDarkMode 
+                              ? 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-gradient-to-br hover:from-indigo-900/40 hover:via-purple-900/40 hover:to-pink-900/40 hover:border-purple-400/30 hover:shadow-2xl hover:shadow-purple-400/20' 
+                              : 'bg-white/30 backdrop-blur-lg border border-white/40 text-gray-900 hover:bg-gradient-to-br hover:from-sky-200/70 hover:via-blue-200/70 hover:to-cyan-200/70 hover:border-sky-400/50 hover:shadow-2xl hover:shadow-sky-500/40'
+                          }`}
+                          style={{
+                            animation: `slideInRight 0.6s ease-out ${(categoryIndex * 0.1) + (apiIndex * 0.1)}s both`,
+                          }}
+                        >
+                          {/* Multi-layer Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700" />
+                          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/10 to-transparent translate-x-full hover:-translate-x-full transition-transform duration-1000" />
+                          
+                          {/* Animated Border */}
+                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 via-transparent to-white/20 opacity-0 hover:opacity-100 transition-opacity duration-500" />
+                          
+                          <div className="relative z-10">
+                            <h4 className="font-bold text-xl mb-2 font-korean drop-shadow-lg">
+                              {api.name}
+                            </h4>
+                            <p className="text-sm opacity-90 leading-relaxed font-korean drop-shadow-md">
+                              {api.data}
+                            </p>
+                          </div>
+                          
+                          {/* Enhanced Floating Particles */}
+                          <div className="absolute top-2 right-2 w-2 h-2 bg-white/40 rounded-full animate-bounce shadow-lg" style={{ animationDelay: `${apiIndex * 0.2}s` }} />
+                          <div className="absolute bottom-2 left-2 w-1 h-1 bg-white/30 rounded-full animate-ping" style={{ animationDelay: `${apiIndex * 0.3}s` }} />
+                          <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-white/20 rounded-full animate-pulse" style={{ animationDelay: `${apiIndex * 0.4}s` }} />
+                          
+                          {/* Magical Sparkles */}
+                          <div className="absolute top-3 left-3 w-0.5 h-0.5 bg-white/60 rounded-full animate-twinkle" style={{ animationDelay: `${apiIndex * 0.5}s` }} />
+                          <div className="absolute bottom-3 right-3 w-0.5 h-0.5 bg-white/60 rounded-full animate-twinkle" style={{ animationDelay: `${apiIndex * 0.7}s` }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Hover Glow Effect */}
+                  <div className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl ${
+                    isDarkMode
+                      ? 'bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20'
+                      : 'bg-gradient-to-r from-sky-300/30 via-blue-300/30 to-cyan-300/30'
+                  }`} />
+                </div>
+              ))}
+            </div>
+            
+            {/* Call to Action */}
+            <div className="pt-8">
+              <Button 
+                size="lg" 
+                className="text-xl px-12 py-6 h-auto" 
+                asChild
+              >
+                <Link href="/login" prefetch={true} className="font-korean">
+                  {t('hero.cta')} <ArrowRight className="ml-3 h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </section>

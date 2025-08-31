@@ -36,49 +36,44 @@ export default function PricingPage() {
     <div className="flex flex-col min-h-screen bg-background relative">
       <AnimatedBackground />
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 hidden md:flex space-x-2">
-            <LanguageToggle />
-            <ThemeToggle />
-          </div>
-          <Link href="/" className="flex items-center space-x-2">
+        <div className="container flex h-14 items-center relative">
+          <div className="flex items-center space-x-2">
             <Server className="h-6 w-6" />
-            <span className="hidden font-bold sm:inline-block font-korean">
+            <span className="hidden font-bold sm:inline-block">
               {t('brand')}
             </span>
-          </Link>
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-            <nav className="flex items-center space-x-6 text-sm font-medium">
-              <Link
-                href="/#features"
-                className="transition-colors hover:text-foreground/80 text-foreground/60 font-korean"
-              >
-                {t('nav.features')}
+          </div>
+          
+          <nav className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-6 text-sm font-medium">
+            <Link
+              href="/#features"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t('nav.features')}
+            </Link>
+            <Link
+              href="/pricing"
+              prefetch={true}
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t('nav.pricing')}
+            </Link>
+            <Link
+              href="/#api-categories"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t('nav.docs')}
+            </Link>
+          </nav>
+          
+          <div className="flex items-center space-x-2 ml-auto">
+            <LanguageToggle />
+            <ThemeToggle />
+            <Button size="sm" asChild>
+              <Link href="/login" prefetch={true}>
+                {t('nav.getstarted')} <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
-              <Link
-                href="/pricing"
-                prefetch={true}
-                className="transition-colors hover:text-foreground/80 text-foreground font-korean"
-              >
-                {t('nav.pricing')}
-              </Link>
-              <Link
-                href="#"
-                className="transition-colors hover:text-foreground/80 text-foreground/60 font-korean"
-              >
-                {t('nav.docs')}
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-2">
-              <Button variant="ghost" size="sm" asChild className="font-korean">
-                <Link href="/login" prefetch={true}>{t('nav.signin')}</Link>
-              </Button>
-              <Button size="sm" asChild className="font-korean">
-                <Link href="/login" prefetch={true}>
-                  {t('nav.getstarted')} <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+            </Button>
           </div>
         </div>
       </header>
