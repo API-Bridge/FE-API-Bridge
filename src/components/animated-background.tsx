@@ -503,7 +503,15 @@ export default function AnimatedBackground() {
       });
     };
 
-    const animate = () => {
+    let lastTime = 0;
+    const animate = (currentTime: number = 0) => {
+      // 60fps로 제한 (16.67ms)
+      if (currentTime - lastTime < 33) { // 30fps로 제한 (더 부드럽게)
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastTime = currentTime;
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (isDarkMode) {
@@ -611,10 +619,10 @@ export default function AnimatedBackground() {
     resizeCanvas();
     
     if (isDarkMode) {
-      starsRef.current = createStars(150);
+      starsRef.current = createStars(80); // 150 -> 80으로 감소
       constellationsRef.current = createConstellations();
     } else {
-      cloudsRef.current = createClouds(12);
+      cloudsRef.current = createClouds(8); // 12 -> 8로 감소
     }
     
     animate();
@@ -622,10 +630,10 @@ export default function AnimatedBackground() {
     const handleResize = () => {
       resizeCanvas();
       if (isDarkMode) {
-        starsRef.current = createStars(150);
+        starsRef.current = createStars(80);
         constellationsRef.current = createConstellations();
       } else {
-        cloudsRef.current = createClouds(12);
+        cloudsRef.current = createClouds(8);
       }
     };
 

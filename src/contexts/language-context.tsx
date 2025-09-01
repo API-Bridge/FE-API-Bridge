@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 // 한국어 / 영어 / 일본어 / 중국어 / 러시아어
 type Language = 'ko' | 'en' | 'ja' | 'zh' | 'ru';
@@ -1381,18 +1381,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem('language', newLanguage);
   };
 
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     return translations[language][key as keyof typeof translations[typeof language]] || key;
-  };
+  }, [language]);
 
   // Helper function to translate dynamic content with fallback
-  const translateIfExists = (key: string, fallback: string): string => {
+  const translateIfExists = useCallback((key: string, fallback: string): string => {
     const translation = translations[language][key as keyof typeof translations[typeof language]];
     return translation || fallback;
-  };
+  }, [language]);
+
+  const contextValue = useMemo(() => ({
+    language,
+    setLanguage: handleSetLanguage,
+    t,
+    translateIfExists
+  }), [language, t, translateIfExists]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, translateIfExists }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

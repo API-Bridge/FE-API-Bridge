@@ -9,8 +9,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
-import AnimatedBackground from "@/components/animated-background";
-import SplitText from "@/components/SplitText";
+import dynamic from "next/dynamic";
+
+const AnimatedBackground = dynamic(() => import("@/components/animated-background"), {
+  ssr: false,
+  loading: () => null
+});
+
+const SplitText = dynamic(() => import("@/components/SplitText"), {
+  ssr: false,
+  loading: () => <div className="text-4xl md:text-5xl font-bold font-korean tracking-tighter mb-4">Loading...</div>
+});
 
 const getFreePlanFeatures = (t: (key: string) => string) => [
   t("pricing.feature.apiCreation.free"),
