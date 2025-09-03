@@ -32,6 +32,7 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useLanguage } from "@/contexts/language-context";
 import { useUser } from "@/contexts/user-context";
+import { useTheme } from "@/contexts/theme-context";
 import AnimatedBackground from "@/components/animated-background";
 
 const getNavItems = (t: (key: string) => string, isAdmin: boolean = false) => {
@@ -74,7 +75,12 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { t } = useLanguage();
   const { isAdmin } = useUser();
+  const { theme } = useTheme();
   const navItems = getNavItems(t, isAdmin);
+
+  const isDarkMode = theme === 'dark' || 
+    (theme === 'system' && typeof window !== 'undefined' && 
+     window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const sidebarNav = (
     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
@@ -91,7 +97,7 @@ export default function DashboardLayout({
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b border-white/20 dark:border-white/10 px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold font-korean">
-              <CodeXml className="h-6 w-6 text-primary" />
+              <img src="/APIBridge.png" alt="API Bridge" className={`h-6 w-6 object-contain ${isDarkMode ? 'brightness-0 invert' : ''}`} />
               <span className="font-korean">{t('brand')}</span>
             </Link>
           </div>
@@ -124,7 +130,7 @@ export default function DashboardLayout({
             <SheetContent side="left" className="flex flex-col p-0 bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm">
               <div className="flex h-14 items-center border-b border-white/20 dark:border-white/10 px-4 lg:h-[60px] lg:px-6">
                 <Link href="/" className="flex items-center gap-2 font-semibold font-korean">
-                  <CodeXml className="h-6 w-6 text-primary" />
+                  <img src="/APIBridge.png" alt="API Bridge" className={`h-6 w-6 object-contain ${isDarkMode ? 'brightness-0 invert' : ''}`} />
                   <span className="">{t('brand')}</span>
                 </Link>
               </div>
@@ -179,14 +185,14 @@ export default function DashboardLayout({
         <footer className="py-6 md:py-4 px-4 relative z-10">
           <div className="flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
             <div className="flex flex-col items-center gap-4 md:flex-row md:gap-2">
-              <Server className="h-5 w-5 text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]" />
-              <p className="text-center text-xs leading-loose text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)] md:text-left font-korean">
+              <img src="/APIBridge.png" alt="API Bridge" className={`h-5 w-5 object-contain ${!isDarkMode ? 'brightness-0' : 'brightness-0 invert'} drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]`} />
+              <p className={`text-center text-xs leading-loose ${isDarkMode ? 'text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]' : 'text-black drop-shadow-[1px_1px_2px_rgba(255,255,255,0.4)]'} md:text-left font-korean`}>
                 {t('footer.built')}{" "}
                 <a
                   href="#"
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium underline underline-offset-4 text-white hover:text-primary transition-colors font-korean"
+                  className={`font-medium underline underline-offset-4 ${isDarkMode ? 'text-white' : 'text-black'} hover:text-primary transition-colors font-korean`}
                 >
                   {t('footer.github')}
                 </a>

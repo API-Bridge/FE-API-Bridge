@@ -8,10 +8,16 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CodeXml, Server } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { useTheme } from "@/contexts/theme-context"
 import AnimatedBackground from "@/components/animated-background"
 
 export default function LoginPage() {
   const { t } = useLanguage();
+  const { theme } = useTheme();
+
+  const isDarkMode = theme === 'dark' || 
+    (theme === 'system' && typeof window !== 'undefined' && 
+     window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   return (
     <div className="flex flex-col min-h-screen bg-background relative">
@@ -20,7 +26,7 @@ export default function LoginPage() {
         <Card className="mx-auto max-w-sm w-full shadow-2xl bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="space-y-1 text-center">
             <div className="inline-block bg-primary text-primary-foreground p-3 rounded-lg mb-4 mx-auto">
-               <CodeXml className="h-8 w-8" />
+               <img src="/APIBridge.png" alt="API Bridge" className={`h-8 w-8 object-contain ${isDarkMode ? 'brightness-0 invert' : ''}`} />
             </div>
             <CardTitle className="text-3xl font-korean">{t('login.title')}</CardTitle>
             <CardDescription className="font-korean">{t('login.description')}</CardDescription>
@@ -60,14 +66,14 @@ export default function LoginPage() {
       <footer className="container py-6 md:py-0 relative z-10">
         <div className="flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <Server className="h-6 w-6 text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]" />
-            <p className="text-center text-sm leading-loose text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)] md:text-left font-korean">
+            <img src="/APIBridge.png" alt="API Bridge" className={`h-6 w-6 object-contain ${!isDarkMode ? 'brightness-0' : 'brightness-0 invert'} drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]`} />
+            <p className={`text-center text-sm leading-loose ${isDarkMode ? 'text-white drop-shadow-[1px_1px_2px_rgba(0,0,0,0.4)]' : 'text-black drop-shadow-[1px_1px_2px_rgba(255,255,255,0.4)]'} md:text-left font-korean`}>
               {t('footer.built')}{" "}
               <a
                 href="#"
                 target="_blank"
                 rel="noreferrer"
-                className="font-medium underline underline-offset-4 text-white hover:text-primary transition-colors font-korean"
+                className={`font-medium underline underline-offset-4 ${isDarkMode ? 'text-white' : 'text-black'} hover:text-primary transition-colors font-korean`}
               >
                 {t('footer.github')}
               </a>
