@@ -25,8 +25,8 @@ export default function LoginPage() {
       <main className="flex items-center justify-center flex-1 p-4 relative z-10">
         <Card className="mx-auto max-w-sm w-full shadow-2xl bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="space-y-1 text-center">
-            <div className="inline-block bg-primary text-primary-foreground p-3 rounded-lg mb-4 mx-auto">
-               <img src="/APIBridge.png" alt="API Bridge" className={`h-8 w-8 object-contain ${isDarkMode ? 'brightness-0 invert' : ''}`} />
+            <div className={`inline-block p-3 rounded-lg mb-4 mx-auto ${isDarkMode ? 'bg-white' : 'bg-black'}`}>
+               <img src="/APIBridge.png" alt="API Bridge" className={`h-8 w-8 object-contain ${isDarkMode ? '' : 'brightness-0 invert'}`} />
             </div>
             <CardTitle className="text-3xl font-korean">{t('login.title')}</CardTitle>
             <CardDescription className="font-korean">{t('login.description')}</CardDescription>

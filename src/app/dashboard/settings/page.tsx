@@ -81,11 +81,9 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle className="font-headline font-korean">{t('settings.security')}</CardTitle>
           <CardDescription className="font-korean">
-            {t('settings.securityDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline" className="font-korean">{t('settings.enable2fa')}</Button>
           <Separator/>
           <div className="space-y-2">
             <Label htmlFor="current-password" className="font-korean">{t('settings.currentPassword')}</Label>
@@ -97,50 +95,10 @@ export default function SettingsPage() {
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
-          <Button className="font-korean">{t('settings.updatePassword')}</Button>
+          <Button className="font-korean">변경</Button>
         </CardFooter>
       </Card>
 
-      <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
-        <CardHeader>
-          <CardTitle className="font-headline font-korean">{t('settings.notifications')}</CardTitle>
-          <CardDescription className="font-korean">
-            {t('settings.notificationsDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-            <div className="flex items-center space-x-2">
-                <Checkbox id="security-emails" defaultChecked />
-                <label
-                    htmlFor="security-emails"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-korean"
-                >
-                    {t('settings.securityEmails')}
-                </label>
-            </div>
-             <div className="flex items-center space-x-2">
-                <Checkbox id="api-alerts" />
-                <label
-                    htmlFor="api-alerts"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-korean"
-                >
-                    {t('settings.apiAlerts')}
-                </label>
-            </div>
-             <div className="flex items-center space-x-2">
-                <Checkbox id="newsletter" />
-                <label
-                    htmlFor="newsletter"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-korean"
-                >
-                    {t('settings.newsletter')}
-                </label>
-            </div>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button className="font-korean">{t('settings.savePreferences')}</Button>
-        </CardFooter>
-      </Card>
     </div>
   )
 }

@@ -29,6 +29,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useLanguage } from "@/contexts/language-context";
 
@@ -72,8 +82,10 @@ const getSharedApis = (t: (key: string) => string) => [
 ];
 
 export default function APIBoard() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [selectedApi, setSelectedApi] = useState<string>("");
   const sharedApis = getSharedApis(t);
 
   const filteredApis = sharedApis.filter(
@@ -83,9 +95,16 @@ export default function APIBoard() {
       api.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCopyAPI = (apiName: string) => {
-    // API 복사 로직
-    alert(`${apiName}${t('apiBoard.importButton')}`);
+  const handleImportClick = (apiName: string) => {
+    setSelectedApi(apiName);
+    setIsImportDialogOpen(true);
+  };
+
+  const handleConfirmImport = () => {
+    // 간단한 가져오기 처리
+    alert(`${selectedApi}을(를) 대시보드로 가져왔습니다!`);
+    setIsImportDialogOpen(false);
+    setSelectedApi("");
   };
 
   return (
@@ -197,7 +216,7 @@ export default function APIBoard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleCopyAPI(api.name)}
+                      onClick={() => handleImportClick(api.name)}
                       className="gap-2"
                     >
                       <Copy className="h-4 w-4" />
@@ -220,6 +239,38 @@ export default function APIBoard() {
           )}
         </CardContent>
       </Card>
+
+      {/* API 가져오기 확인 모달 */}
+      <AlertDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-korean">
+              {t('apiBoard.importConfirmTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-korean text-base">
+              {language === 'en' ? (
+                <>
+                  {t('apiBoard.importConfirmMessage').replace('{apiName}', selectedApi)}
+                  <br />
+                  {t('apiBoard.importConfirmDescription')}
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold text-foreground">{selectedApi}</span>{t('apiBoard.importConfirmMessage')}
+                  <br />
+                  {t('apiBoard.importConfirmDescription')}
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-korean">{t('apiBoard.importConfirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmImport} className="font-korean">
+              {t('apiBoard.importConfirmYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -121,10 +121,20 @@ export default function AdminPage() {
             <CardDescription className="font-korean">{t('monitoring.grafanaDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border">
+            <div className="w-full h-96 bg-muted rounded-lg border flex flex-col items-center justify-center">
               <div className="text-center text-muted-foreground">
-                <BarChart3 className="h-16 w-16 mx-auto" />
-                <p className="mt-4 font-korean">{t('monitoring.grafanaEmbed')}</p>
+                <BarChart3 className="h-16 w-16 mx-auto mb-4" />
+                <p className="text-lg font-semibold mb-2 font-korean">그라파나 대시보드</p>
+                <p className="text-sm mb-6 font-korean">Node Exporter Full - 시스템 모니터링</p>
+                <a
+                  href="http://localhost:3000/d/rYdddlPWk/node-exporter-full?orgId=1&from=now-24h&to=now&timezone=browser&var-DS_PROMETHEUS=bewra9ybzyy2oc&var-job=kubernetes-service-endpoints&var-nodename=minikube&var-node=192.168.49.2:9100&var-diskdevices=%5Ba-z%5D%2B%7Cnvme%5B0-9%5D%2Bn%5B0-9%5D%2B%7Cmmcblk%5B0-9%5D%2B&refresh=1m"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2 font-medium transition-colors font-korean"
+                >
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  대시보드 열기
+                </a>
               </div>
             </div>
           </CardContent>
