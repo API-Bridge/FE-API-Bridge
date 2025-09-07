@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { suggestApis, type SuggestApisOutput } from "@/ai/flows/suggest-apis";
+import { Input } from "@/components/ui/input";
+import { createCustomAPISimple } from "@/lib/api";
 import { Loader2, Wand2 } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -17,25 +18,37 @@ import { useLanguage } from "@/contexts/language-context";
 export function SuggestionsForm() {
   const { t } = useLanguage();
   const [dataDescription, setDataDescription] = useState("");
+  const [apiName, setApiName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<SuggestApisOutput | null>(null);
+  const [result, setResult] = useState<any | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dataDescription.trim() || !apiName.trim()) {
+      toast({
+        variant: "destructive",
+        title: "입력 오류",
+        description: "API 이름과 설명을 모두 입력해주세요.",
+      });
+      return;
+    }
+
     setLoading(true);
     setResult(null);
     try {
-      const suggestions = await suggestApis({
-        dataDescription,
+      const response = await createCustomAPISimple(dataDescription, apiName);
+      setResult(response);
+      toast({
+        title: "성공",
+        description: "커스텀 API가 성공적으로 생성되었습니다!",
       });
-      setResult(suggestions);
     } catch (err) {
       toast({
         variant: "destructive",
         title: "오류가 발생했습니다.",
         description: "API를 생성하는데 실패했습니다. 나중에 다시 시도해 주세요.",
-      })
+      });
       console.error(err);
     } finally {
       setLoading(false);
@@ -44,6 +57,21 @@ export function SuggestionsForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid w-full gap-2">
+        <Label htmlFor="api-name" className="font-semibold font-korean">API 이름</Label>
+        <Input
+          id="api-name"
+          placeholder="예: weather-clothing-recommendation"
+          value={apiName}
+          onChange={(e) => setApiName(e.target.value)}
+          required
+          className="focus:!ring-primary focus:ring-2 transition-all font-korean"
+        />
+        <p className="text-sm text-muted-foreground font-korean">
+          생성할 API의 고유한 이름을 입력하세요
+        </p>
+      </div>
+
       <div className="grid w-full gap-2">
         <Label htmlFor="data-description" className="font-semibold font-korean">{t('suggestions.dataDescription')}</Label>
         <Textarea
@@ -60,8 +88,7 @@ export function SuggestionsForm() {
         </p>
       </div>
 
-
-      <Button type="submit" className="w-full font-bold font-korean" disabled={loading || !dataDescription}>
+      <Button type="submit" className="w-full font-bold font-korean" disabled={loading || !dataDescription || !apiName}>
         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
         {t('suggestions.createButton')}
       </Button>
@@ -83,26 +110,21 @@ export function SuggestionsForm() {
       {result && (
         <Card className="bg-gradient-to-br from-card to-muted/50">
           <CardHeader>
-            <CardTitle className="text-xl font-headline font-korean">{t('suggestions.recommendedTitle') || '추천 API'}</CardTitle>
-            <CardDescription className="font-korean">{t('suggestions.recommendedDescription') || '귀하의 요구에 맞는 몇 가지 API는 다음과 같습니다.'}</CardDescription>
+            <CardTitle className="text-xl font-headline font-korean">API 생성 완료</CardTitle>
+            <CardDescription className="font-korean">커스텀 API가 성공적으로 생성되었습니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            {result.apiSuggestions.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {result.apiSuggestions.map((api, index) => (
-                  <Badge key={index} variant="secondary" className="text-base py-2 px-4 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors font-korean">
-                    {api}
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-             <Alert>
-                <Wand2 className="h-4 w-4" />
-                <AlertTitle className="font-korean">{t('suggestions.noResultsTitle') || '결과를 찾을 수 없음'}</AlertTitle>
-                <AlertDescription className="font-korean">
-                    {t('suggestions.noResultsDescription') || 'AI가 귀하의 쿼리에 대한 API를 찾을 수 없습니다. 설명을 바꾸어 다시 시도해 보세요.'}
-                </AlertDescription>
+            <Alert>
+              <Wand2 className="h-4 w-4" />
+              <AlertTitle className="font-korean">생성 성공</AlertTitle>
+              <AlertDescription className="font-korean">
+                API "{apiName}"가 성공적으로 생성되었습니다. 대시보드에서 확인하고 관리할 수 있습니다.
+              </AlertDescription>
             </Alert>
+            {result.message && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <p className="text-sm font-korean">{result.message}</p>
+              </div>
             )}
           </CardContent>
         </Card>

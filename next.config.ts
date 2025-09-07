@@ -21,8 +21,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // 빌드 최적화
-  swcMinify: true,
+  // 빌드 최적화 (swcMinify는 Next.js 15에서 기본값이므로 제거)
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

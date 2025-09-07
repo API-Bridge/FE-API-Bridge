@@ -109,7 +109,9 @@ export default function LandingPage() {
             scrollTrigger: { 
               trigger: categoryCards[0], start: 'top bottom-=40%', toggleActions: 'play none none reverse'
             },
-            onComplete: () => gsap.set(categoryCards, { opacity: 1, scale: 1, rotateY: 0, filter: 'blur(0px)', clearProps: 'transform' })
+            onComplete: () => {
+              gsap.set(categoryCards, { opacity: 1, scale: 1, rotateY: 0, filter: 'blur(0px)', clearProps: 'transform' });
+            }
           }
         );
       }

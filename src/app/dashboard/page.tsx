@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,128 +59,91 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/language-context";
+import { getCustomAPIList, shareCustomAPI } from "@/lib/api";
 
-const getApiData = (translateIfExists: (key: string, fallback: string) => string) => [
-  {
-    name: translateIfExists("api.weatherData", "날씨 데이터 API"),
-    nameKey: "api.weatherData",
-    status: "active",
-    calls: "1,203,489",
-    successRate: "99.8%",
-    isShared: true,
-    isImported: false,
-    originalAuthor: null,
-    path: "/api/weather/{city}",
-    description: "현재 날씨 정보와 5일 예보를 제공하는 API입니다.",
-    pathParameters: [
-      { name: "city", type: "string", required: true, description: "도시 이름" }
-    ],
-    queryParameters: [
-      { name: "units", type: "string", required: false, description: "온도 단위 (metric, imperial)" },
-      { name: "lang", type: "string", required: false, description: "언어 코드 (ko, en)" }
-    ],
-    requestBody: []
-  },
-  {
-    name: translateIfExists("api.stockMarket", "주식 시장 피드"),
-    nameKey: "api.stockMarket", 
-    status: "active",
-    calls: "8,456,123",
-    successRate: "99.5%",
-    isShared: false,
-    isImported: false,
-    originalAuthor: null,
-    path: "/api/stocks/{symbol}",
-    description: "실시간 주식 시세와 거래 정보를 제공하는 API입니다.",
-    pathParameters: [
-      { name: "symbol", type: "string", required: true, description: "주식 심볼 (AAPL, GOOGL 등)" }
-    ],
-    queryParameters: [
-      { name: "interval", type: "string", required: false, description: "데이터 간격 (1m, 5m, 1h, 1d)" }
-    ],
-    requestBody: []
-  },
-  {
-    name: translateIfExists("api.locationService", "사용자 위치정보 서비스"),
-    nameKey: "api.locationService",
-    status: "inactive",
-    calls: "50,123",
-    successRate: "100%",
-    isShared: false,
-    isImported: true,
-    originalAuthor: "locationdev",
-    path: "/api/location",
-    description: "GPS 좌표를 이용하여 주소와 주변 정보를 제공하는 API입니다.",
-    pathParameters: [],
-    queryParameters: [
-      { name: "lat", type: "number", required: true, description: "위도" },
-      { name: "lng", type: "number", required: true, description: "경도" },
-      { name: "radius", type: "number", required: false, description: "검색 반경 (km)" }
-    ],
-    requestBody: []
-  },
-  {
-    name: translateIfExists("api.productCatalog", "제품 카탈로그 API"),
-    nameKey: "api.productCatalog",
-    status: "active",
-    calls: "2,345,678",
-    successRate: "98.9%",
-    isShared: true,
-    isImported: false,
-    originalAuthor: null,
-    path: "/api/products",
-    description: "온라인 쇼핑몰의 제품 정보를 검색하고 관리할 수 있는 API입니다.",
-    pathParameters: [],
-    queryParameters: [
-      { name: "category", type: "string", required: false, description: "제품 카테고리" },
-      { name: "search", type: "string", required: false, description: "검색 키워드" },
-      { name: "limit", type: "number", required: false, description: "결과 개수 제한" }
-    ],
-    requestBody: []
-  },
-  {
-    name: translateIfExists("api.paymentGateway", "결제 게이트웨이 브릿지"),
-    nameKey: "api.paymentGateway",
-    status: "error",
-    calls: "987,654",
-    successRate: "92.1%",
-    isShared: false,
-    isImported: true,
-    originalAuthor: "paymentexpert",
-    path: "/api/payment",
-    description: "다양한 결제 수단을 통합하여 안전한 결제 처리를 제공하는 API입니다.",
-    pathParameters: [],
-    queryParameters: [],
-    requestBody: [
-      { name: "amount", type: "number", required: true, description: "결제 금액" },
-      { name: "currency", type: "string", required: true, description: "통화 종류 (KRW, USD)" },
-      { name: "method", type: "string", required: true, description: "결제 수단 (card, bank, mobile)" }
-    ]
-  },
-];
+// API 타입 정의
+interface APIParameter {
+  name: string;
+  type: string;
+  description: string;
+  required: boolean;
+  paramName?: string;
+  paramType?: string;
+  paramDescription?: string;
+  isRequired?: boolean;
+  defaultValue?: string;
+}
+
+interface CustomAPI {
+  id?: string;
+  name: string;
+  description?: string;
+  method?: string;
+  endpoint?: string;
+  path?: string;
+  status?: string;
+  calls?: number;
+  successRate?: string;
+  isShared?: boolean;
+  parameters?: APIParameter[];
+  pathParameters?: APIParameter[];
+  queryParameters?: APIParameter[];
+  requestBody?: APIParameter[];
+  isImported?: boolean;
+  originalAuthor?: string;
+}
 
 export default function Dashboard() {
   const { t, translateIfExists } = useLanguage();
-  const apis = getApiData(translateIfExists);
+  const [customAPIs, setCustomAPIs] = useState<CustomAPI[]>([]);
+  const [sharedAPIs] = useState<CustomAPI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<'myApis' | 'imported'>('myApis');
   const [deleteApiName, setDeleteApiName] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedApi, setSelectedApi] = useState<any>(null);
+  const [selectedApi, setSelectedApi] = useState<CustomAPI | null>(null);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   
-  const [apiSharedStatus, setApiSharedStatus] = useState(
-    apis.reduce((acc, api) => {
-      acc[api.name] = api.isShared;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
+  const [apiSharedStatus, setApiSharedStatus] = useState<Record<string, boolean>>({});
 
-  const toggleShare = (apiName: string) => {
-    setApiSharedStatus(prev => ({
-      ...prev,
-      [apiName]: !prev[apiName]
-    }));
+  useEffect(() => {
+    loadCustomAPIs();
+  }, []);
+
+  const loadCustomAPIs = async () => {
+    try {
+      setIsLoading(true);
+      const apis = await getCustomAPIList();
+      setCustomAPIs(apis || []);
+      
+      // Initialize shared status
+      const sharedStatus: Record<string, boolean> = {};
+      (apis || []).forEach((api: CustomAPI) => {
+        sharedStatus[api.name] = api.isShared || false;
+      });
+      setApiSharedStatus(sharedStatus);
+    } catch (error) {
+      console.error('커스텀 API 목록 조회 실패:', error);
+      setCustomAPIs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const toggleShare = async (apiName: string) => {
+    try {
+      const newSharedStatus = !apiSharedStatus[apiName];
+      await shareCustomAPI(apiName, newSharedStatus);
+      setApiSharedStatus(prev => ({
+        ...prev,
+        [apiName]: newSharedStatus
+      }));
+    } catch (error) {
+      console.error('공유 상태 변경 실패:', error);
+      alert('공유 상태 변경에 실패했습니다.');
+    }
   };
 
   const handleDeleteApi = (apiName: string) => {
@@ -201,7 +164,7 @@ export default function Dashboard() {
     setIsDeleteDialogOpen(false);
   };
 
-  const openApiDetail = (api: any) => {
+  const openApiDetail = (api: CustomAPI) => {
     setSelectedApi(api);
     setIsApiDetailOpen(true);
   };
@@ -212,18 +175,20 @@ export default function Dashboard() {
   };
 
   const filteredApis = useMemo(() => {
-    // 먼저 필터에 따라 API 분류
-    let filteredByType = apis.filter(api => 
-      activeFilter === 'myApis' ? !api.isImported : api.isImported
-    );
+    let apiList: CustomAPI[];
+    if (activeFilter === 'imported') {
+      apiList = sharedAPIs;
+    } else {
+      apiList = customAPIs;
+    }
     
-    // 그 다음 검색어로 필터링
-    if (!searchQuery) return filteredByType;
-    return filteredByType.filter(api => 
-      api.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (api.originalAuthor && api.originalAuthor.toLowerCase().includes(searchQuery.toLowerCase()))
+    // 검색어로 필터링
+    if (!searchQuery) return apiList;
+    return apiList.filter((api: CustomAPI) => 
+      api.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      api.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [apis, searchQuery, activeFilter]);
+  }, [customAPIs, sharedAPIs, searchQuery, activeFilter]);
 
   return (
     <>
@@ -278,6 +243,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
+
       <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
@@ -294,7 +260,7 @@ export default function Dashboard() {
                 onClick={() => setActiveFilter('myApis')}
                 className="font-korean"
               >
-                내API
+                {t('dashboard.myApisButton')}
               </Button>
               <Button
                 variant={activeFilter === 'imported' ? 'default' : 'outline'}
@@ -302,13 +268,13 @@ export default function Dashboard() {
                 onClick={() => setActiveFilter('imported')}
                 className="font-korean"
               >
-                가져온API
+                {t('dashboard.importedApisButton')}
               </Button>
             </div>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="API 이름을 검색하세요"
+                placeholder={t('dashboard.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8 w-80 font-korean"
@@ -317,93 +283,100 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-korean w-[40%]">{t('dashboard.table.apiName')}</TableHead>
-                <TableHead className="text-center font-korean w-[15%]">{t('dashboard.table.status')}</TableHead>
-                <TableHead className="text-right font-korean w-[15%]">{t('dashboard.table.calls')}</TableHead>
-                <TableHead className="text-center font-korean w-[20%]">{t('dashboard.table.sharing')}</TableHead>
-                <TableHead className="w-[10%] text-center font-korean">{t('dashboard.table.actions') || '작업'}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredApis.map((api) => (
-                <TableRow key={api.name} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-white/10" onClick={() => openApiDetail(api)}>
-                  <TableCell className="font-medium font-korean w-[40%]">
-                    <div>
-                      <div className="font-korean">
-                        {api.name}
-                      </div>
-                      {activeFilter === 'imported' && api.originalAuthor && (
-                        <div className="text-xs text-muted-foreground mt-1 font-korean">
-                          {t('dashboard.originalAuthor')}: {api.originalAuthor}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center w-[15%]">
-                    <Badge
-                      variant={
-                        api.status === "active"
-                          ? "default"
-                          : api.status === "error"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                      className={
-                        api.status === "active"
-                          ? "bg-green-400 hover:bg-green-500 text-white dark:bg-white dark:text-black dark:hover:bg-white/90"
-                          : ""
-                      }
-                    >
-                      {t(`dashboard.status.${api.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right w-[15%]">{api.calls}</TableCell>
-                  <TableCell className="text-center w-[20%]">
-                    <div className="flex justify-center">
-                      {activeFilter === 'imported' ? (
-                        <span className="text-sm text-muted-foreground font-medium font-korean">
-                          -
-                        </span>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant={apiSharedStatus[api.name] ? "default" : "secondary"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleShare(api.name);
-                          }}
-                          className={`gap-1 w-20 font-korean font-bold ${
-                            apiSharedStatus[api.name] 
-                              ? "bg-sky-500 hover:bg-sky-600 text-white dark:bg-white dark:text-black dark:hover:bg-white/90" 
-                              : ""
-                          }`}
-                        >
-                          <Share2 className="h-3 w-3" />
-                          {apiSharedStatus[api.name] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="w-[10%] text-center">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-white dark:text-red-400 dark:hover:bg-red-950 font-korean"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDeleteDialog(api.name);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 dark:text-white" />
-                    </Button>
-                  </TableCell>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground font-korean">{t('dashboard.loading')}</p>
+            </div>
+          ) : filteredApis.length === 0 ? (
+            <div className="text-center py-8">
+              {activeFilter === 'imported' ? (
+                <p className="text-muted-foreground font-korean">
+                  {t('dashboard.noImportedApis')}
+                </p>
+              ) : (
+                <p className="text-muted-foreground font-korean">
+                  {searchQuery ? t('dashboard.noSearchResults') : t('dashboard.noCreatedApis')}
+                </p>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-korean w-[40%]">{t('dashboard.table.apiName')}</TableHead>
+                  <TableHead className="text-center font-korean w-[15%]">{t('dashboard.table.method')}</TableHead>
+                  <TableHead className="text-center font-korean w-[15%]">{t('dashboard.table.parameters')}</TableHead>
+                  <TableHead className="text-center font-korean w-[20%]">{t('dashboard.table.sharing')}</TableHead>
+                  <TableHead className="w-[10%] text-center font-korean">{t('dashboard.table.actions')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredApis.map((api) => (
+                  <TableRow key={api.id || api.name} className="cursor-pointer hover:bg-muted/80 dark:hover:bg-white/10" onClick={() => openApiDetail(api)}>
+                    <TableCell className="font-medium font-korean w-[40%]">
+                      <div>
+                        <div className="font-korean font-semibold">
+                          {api.name}
+                        </div>
+                        <div className="text-sm text-muted-foreground font-korean mt-1">
+                          {api.description || t('dashboard.noDescription')}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center w-[15%]">
+                      <Badge variant="outline" className="font-mono">
+                        {api.method || 'GET'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center w-[15%]">
+                      <span className="text-sm font-korean">
+                        {api.parameters ? api.parameters.length : 0}{t('dashboard.parametersCount')}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center w-[20%]">
+                      <div className="flex justify-center">
+                        {activeFilter === 'myApis' ? (
+                          <Button
+                            size="sm"
+                            variant={apiSharedStatus[api.name] ? "default" : "secondary"}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleShare(api.name);
+                            }}
+                            className={`gap-1 w-20 font-korean font-bold ${
+                              apiSharedStatus[api.name] 
+                                ? "bg-sky-500 hover:bg-sky-600 text-white dark:bg-white dark:text-black dark:hover:bg-white/90" 
+                                : ""
+                            }`}
+                          >
+                            <Share2 className="h-3 w-3" />
+                            {apiSharedStatus[api.name] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
+                          </Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground font-korean">
+                            {t('dashboard.share.imported')}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="w-[10%] text-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-white dark:text-red-400 dark:hover:bg-red-950 font-korean"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteDialog(api.name);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 dark:text-white" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
       
@@ -413,14 +386,14 @@ export default function Dashboard() {
           className="sm:max-w-[425px]"
         >
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-korean">API를 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle className="font-korean">{t('dashboard.delete.title')}</AlertDialogTitle>
             <AlertDialogDescription className="font-korean">
               {deleteApiName && (
                 <>
                   <strong className="text-lg">{deleteApiName}</strong>
                   <br />
                   <span className="text-sm text-muted-foreground mt-2 block">
-                    이 작업은 되돌릴 수 없습니다.
+                    {t('dashboard.delete.warning')}
                   </span>
                 </>
               )}
@@ -428,13 +401,13 @@ export default function Dashboard() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={closeDeleteDialog} className="font-korean">
-              아니오
+              {t('dashboard.delete.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => deleteApiName && handleDeleteApi(deleteApiName)}
               className="bg-red-600 hover:bg-red-700 font-korean"
             >
-              예
+              {t('dashboard.delete.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

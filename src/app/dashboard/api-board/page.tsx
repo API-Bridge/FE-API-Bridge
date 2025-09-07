@@ -1,17 +1,13 @@
 "use client";
 
 import {
-  Copy,
   Download,
-  KeyRound,
   MessageSquare,
   Search,
-  Share2,
   User,
   Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,134 +25,104 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/language-context";
+import { getSharedCustomAPIs } from "@/lib/api";
 
-const getSharedApis = (t: (key: string) => string) => [
-  {
-    name: t('api.movieRecommendation'),
-    author: "user123",
-    authorName: "김영화",
-    authorImage: "https://placehold.co/40x40.png",
-    description: t('api.movieRecommendationDesc'),
-    uses: 245,
-    shared: `2 ${t('time.daysAgo')}`,
-  },
-  {
-    name: t('api.cryptoPriceTracker'),
-    author: "cryptodev",
-    authorName: "이코인",
-    authorImage: "https://placehold.co/40x40.png",
-    description: t('api.cryptoPriceTrackerDesc'),
-    uses: 892,
-    shared: `5 ${t('time.daysAgo')}`,
-  },
-  {
-    name: t('api.socialMediaAnalyzer'),
-    author: "dataanalyst",
-    authorName: "박데이터",
-    authorImage: "https://placehold.co/40x40.png",
-    description: t('api.socialMediaAnalyzerDesc'),
-    uses: 156,
-    shared: `1 ${t('time.weeksAgo')}`,
-  },
-  {
-    name: t('api.deliveryOptimizer'),
-    author: "foodtech",
-    authorName: "최배달",
-    authorImage: "https://placehold.co/40x40.png",
-    description: t('api.deliveryOptimizerDesc'),
-    uses: 67,
-    shared: `3 ${t('time.daysAgo')}`,
-  },
-];
+// 공유된 API 타입 정의
+interface SharedAPI {
+  id?: string;
+  name: string;
+  author?: string;
+  authorName?: string;
+  authorImage?: string;
+  description?: string;
+  uses?: number;
+  shared?: string;
+  usageCount?: number;
+  createdAt?: string;
+  creator?: string;
+}
 
 export default function APIBoard() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [selectedApi, setSelectedApi] = useState<string>("");
-  const sharedApis = getSharedApis(t);
+  const [sharedApis, setSharedApis] = useState<SharedAPI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSharedAPIs();
+  }, []);
+
+  const loadSharedAPIs = async () => {
+    try {
+      setIsLoading(true);
+      const apis = await getSharedCustomAPIs();
+      setSharedApis(apis || []);
+    } catch (error) {
+      console.error('공유된 API 목록 조회 실패:', error);
+      setSharedApis([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredApis = sharedApis.filter(
     (api) =>
       api.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      api.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      api.author.toLowerCase().includes(searchTerm.toLowerCase())
+      (api.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (api.author || api.creator || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleImportClick = (apiName: string) => {
-    setSelectedApi(apiName);
-    setIsImportDialogOpen(true);
-  };
-
-  const handleConfirmImport = () => {
-    // 간단한 가져오기 처리
-    alert(`${selectedApi}을(를) 대시보드로 가져왔습니다!`);
-    setIsImportDialogOpen(false);
-    setSelectedApi("");
-  };
 
   return (
     <>
-      {/* 상단 통계 박스 3개 */}
+      {/* 상단 통계 박스 */}
       <div className="grid gap-4 md:grid-cols-3 md:gap-8">
         <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.myShared')}</CardTitle>
-            <Share2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-korean">3</div>
-            <p className="text-xs text-muted-foreground font-korean">
-              +1 {t('apiBoard.thisMonth')}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.imported')}</CardTitle>
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-korean">7</div>
-            <p className="text-xs text-muted-foreground font-korean">
-              +2 {t('apiBoard.thisMonth')}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.totalBoard')}</CardTitle>
+            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.stats.sharedApis')}</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-korean">1,247</div>
+            <div className="text-2xl font-bold font-korean">{sharedApis.length}</div>
             <p className="text-xs text-muted-foreground font-korean">
-              +23 {t('apiBoard.thisWeek')}
+              {t('apiBoard.stats.sharedApisDesc')}
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.stats.activeUsers')}</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-korean">1,360</div>
+            <p className="text-xs text-muted-foreground font-korean">
+              {t('apiBoard.stats.activeUsersDesc')}
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium font-korean">{t('apiBoard.stats.totalDownloads')}</CardTitle>
+            <Download className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-korean">12,234</div>
+            <p className="text-xs text-muted-foreground font-korean">
+              {t('apiBoard.stats.totalDownloadsDesc')}
             </p>
           </CardContent>
         </Card>
       </div>
 
-
       {/* 공유된 API 목록 */}
       <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader className="flex flex-row items-center">
           <div className="grid gap-2">
-            <CardTitle className="font-headline font-korean">{t('apiBoard.sharedApis')}</CardTitle>
+            <CardTitle className="font-headline font-korean">{t('apiBoard.title')}</CardTitle>
             <CardDescription className="font-korean">
               {t('apiBoard.description')}
             </CardDescription>
@@ -174,6 +140,11 @@ export default function APIBoard() {
           </div>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground font-korean">{t('dashboard.loading')}</p>
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -183,94 +154,62 @@ export default function APIBoard() {
                 <TableHead className="text-right font-korean">{t('apiBoard.table.usageCount')}</TableHead>
                 <TableHead className="text-right font-korean">{t('apiBoard.table.sharedDate')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">작업</span>
+                  <span className="sr-only">{t('apiBoard.table.actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredApis.map((api) => (
-                <TableRow key={api.name}>
+                <TableRow key={api.id || api.name}>
                   <TableCell className="font-medium font-korean">{api.name}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={api.authorImage} alt={`${api.authorName} 프로필`} />
+                        <AvatarImage src={api.authorImage || "https://placehold.co/40x40.png"} alt={`${api.authorName || api.creator} 프로필`} />
                         <AvatarFallback>
                           <User className="w-4 h-4" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium font-korean">{api.authorName}</span>
-                        <span className="text-xs text-muted-foreground font-korean">@{api.author}</span>
+                        <span className="font-medium font-korean">{api.authorName || api.creator || '익명'}</span>
+                        <span className="text-xs text-muted-foreground font-korean">@{api.author || api.creator || 'anonymous'}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="max-w-[300px] truncate font-korean">
-                    {api.description}
+                    {api.description || '설명이 없습니다'}
                   </TableCell>
-                  <TableCell className="text-right font-korean">{api.uses.toLocaleString()}</TableCell>
+                  <TableCell className="text-right font-korean">{(api.uses || api.usageCount || 0).toLocaleString()}</TableCell>
                   <TableCell className="text-right text-muted-foreground font-korean">
-                    {api.shared}
+                    {api.shared || api.createdAt || '최근'}
                   </TableCell>
                   <TableCell>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleImportClick(api.name)}
                       className="gap-2"
                     >
-                      <Copy className="h-4 w-4" />
-                      <span className="font-korean">{t('apiBoard.importButton')}</span>
+                      <Download className="h-4 w-4" />
+                      <span className="font-korean">{t('apiBoard.useButton')}</span>
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          )}
           
-          {filteredApis.length === 0 && (
+          {!isLoading && filteredApis.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg font-medium font-korean">{t('apiBoard.noResults')}</p>
               <p className="text-sm text-muted-foreground font-korean">
-                {t('apiBoard.noResultsDescription')}
+                {t('apiBoard.noResultsDesc')}
               </p>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* API 가져오기 확인 모달 */}
-      <AlertDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-korean">
-              {t('apiBoard.importConfirmTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-korean text-base">
-              {language === 'en' ? (
-                <>
-                  {t('apiBoard.importConfirmMessage').replace('{apiName}', selectedApi)}
-                  <br />
-                  {t('apiBoard.importConfirmDescription')}
-                </>
-              ) : (
-                <>
-                  <span className="font-semibold text-foreground">{selectedApi}</span>{t('apiBoard.importConfirmMessage')}
-                  <br />
-                  {t('apiBoard.importConfirmDescription')}
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="font-korean">{t('apiBoard.importConfirmCancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmImport} className="font-korean">
-              {t('apiBoard.importConfirmYes')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

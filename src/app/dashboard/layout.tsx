@@ -39,6 +39,7 @@ const getNavItems = (t: (key: string) => string, isAdmin: boolean = false) => {
   const baseItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: t('nav.dashboard') },
     { href: "/dashboard/api-board", icon: MessageSquare, label: t('nav.apiBoard') },
+    { href: "/dashboard/api-usage", icon: Server, label: "API 사용" },
     { href: "/dashboard/settings", icon: Settings, label: t('nav.settings') },
   ];
   
@@ -115,7 +116,7 @@ export default function DashboardLayout({
         </div>
       </div>
       <div className="flex flex-col relative z-10">
-        <header className="flex h-14 items-center gap-4 border-b bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 px-4 lg:h-[60px] lg:px-6">
+        <header className="flex h-14 items-center gap-4 border-b bg-white/20 backdrop-blur-sm border-white/20 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10 px-4 lg:h-[60px] lg:px-6 sticky top-0 z-50">
           <Sheet>
             <SheetTrigger asChild>
               <Button
