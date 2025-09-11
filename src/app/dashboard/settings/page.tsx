@@ -27,8 +27,15 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   
   // 등록된 AI 키 목록
-  const [registeredKeys, setRegisteredKeys] = useState<AIKey[]>([]);
-  const [isLoadingKeys, setIsLoadingKeys] = useState(true);
+  const [registeredKeys, setRegisteredKeys] = useState<AIKey[]>([
+    {
+      id: '1',
+      name: 'Gemini 키',
+      secretName: 'Gemini 키',
+      description: '2025-09-08 발급받음'
+    }
+  ]);
+  const [isLoadingKeys, setIsLoadingKeys] = useState(false);
 
   // 폼 입력 상태
   const [formData, setFormData] = useState({
@@ -46,10 +53,10 @@ export default function SettingsPage() {
   // 등록 중 상태
   const [isRegistering, setIsRegistering] = useState(false);
 
-  // 페이지 로드 시 AI 키 목록 조회
-  useEffect(() => {
-    loadAIKeys();
-  }, []);
+  // 페이지 로드 시 AI 키 목록 조회 (더미 데이터 유지를 위해 주석 처리)
+  // useEffect(() => {
+  //   loadAIKeys();
+  // }, []);
 
   const loadAIKeys = async () => {
     try {
@@ -224,97 +231,130 @@ export default function SettingsPage() {
 
       <Card className="bg-background/60 backdrop-blur-sm border-border/50 dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Key className="w-5 h-5" />
-                <CardTitle className="font-headline font-korean">{t('settings.aiKey.title')}</CardTitle>
-              </div>
-              <CardDescription className="font-korean mt-1">
-                {t('settings.aiKey.description')}
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2 max-w-xs">
-              {isLoadingKeys ? (
-                <span className="text-xs text-muted-foreground font-korean">{t('settings.aiKey.loading')}</span>
-              ) : registeredKeys.length > 0 ? (
-                registeredKeys.map((key) => (
-                  <Badge 
-                    key={key.id || key.secretName || key.name} 
-                    variant="secondary" 
-                    className="flex items-center gap-1 px-3 py-2 text-base"
-                  >
-                    {key.secretName || key.name}
-                    <button
-                      onClick={() => removeKey(key.id || key.secretName || key.name || '')}
-                      className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-xs text-muted-foreground font-korean">{t('settings.aiKey.noKeys')}</span>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            <Key className="w-5 h-5" />
+            <CardTitle className="font-headline font-korean">{t('settings.aiKey.title')}</CardTitle>
           </div>
+          <CardDescription className="font-korean">
+            {t('settings.aiKey.description')}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="secret-name" className="font-korean">{t('settings.aiKey.form.keyName')}</Label>
-            <Input 
-              id="secret-name" 
-              placeholder={t('settings.aiKey.form.keyNamePlaceholder')} 
-              className={`font-korean ${errors.secretName ? 'border-red-500' : ''}`}
-              value={formData.secretName}
-              onChange={(e) => setFormData(prev => ({ ...prev, secretName: e.target.value }))}
-            />
-            {errors.secretName && (
-              <p className="text-xs text-red-500 font-korean">{errors.secretName}</p>
-            )}
-            <p className="text-xs text-muted-foreground font-korean">
-              {t('settings.aiKey.form.keyNameHelp')}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="secret-value" className="font-korean">{t('settings.aiKey.form.apiKey')}</Label>
-            <Input 
-              id="secret-value" 
-              type="password" 
-              placeholder={t('settings.aiKey.form.apiKeyPlaceholder')} 
-              className={`font-korean ${errors.secretValue ? 'border-red-500' : ''}`}
-              value={formData.secretValue}
-              onChange={(e) => setFormData(prev => ({ ...prev, secretValue: e.target.value }))}
-            />
-            {errors.secretValue && (
-              <p className="text-xs text-red-500 font-korean">{errors.secretValue}</p>
-            )}
-            <p className="text-xs text-muted-foreground font-korean">
-              {t('settings.aiKey.form.apiKeyHelp')}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="secret-description" className="font-korean">{t('settings.aiKey.form.description')}</Label>
-            <Textarea 
-              id="secret-description" 
-              placeholder={t('settings.aiKey.form.descriptionPlaceholder')} 
-              className="font-korean resize-none" 
-              rows={3}
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 왼쪽: 등록 폼 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="secret-name" className="font-korean">{t('settings.aiKey.form.keyName')}</Label>
+                <Input 
+                  id="secret-name" 
+                  placeholder={t('settings.aiKey.form.keyNamePlaceholder')} 
+                  className={`font-korean ${errors.secretName ? 'border-red-500' : ''}`}
+                  value={formData.secretName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, secretName: e.target.value }))}
+                />
+                {errors.secretName && (
+                  <p className="text-xs text-red-500 font-korean">{errors.secretName}</p>
+                )}
+                <p className="text-xs text-muted-foreground font-korean">
+                  {t('settings.aiKey.form.keyNameHelp')}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secret-value" className="font-korean">{t('settings.aiKey.form.apiKey')}</Label>
+                <Input 
+                  id="secret-value" 
+                  type="password" 
+                  placeholder={t('settings.aiKey.form.apiKeyPlaceholder')} 
+                  className={`font-korean ${errors.secretValue ? 'border-red-500' : ''}`}
+                  value={formData.secretValue}
+                  onChange={(e) => setFormData(prev => ({ ...prev, secretValue: e.target.value }))}
+                />
+                {errors.secretValue && (
+                  <p className="text-xs text-red-500 font-korean">{errors.secretValue}</p>
+                )}
+                <p className="text-xs text-muted-foreground font-korean">
+                  {t('settings.aiKey.form.apiKeyHelp')}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="secret-description" className="font-korean">{t('settings.aiKey.form.description')}</Label>
+                <Textarea 
+                  id="secret-description" 
+                  placeholder={t('settings.aiKey.form.descriptionPlaceholder')} 
+                  className="font-korean resize-none" 
+                  rows={3}
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+              
+              <Button 
+                className="font-korean w-full" 
+                onClick={handleRegister}
+                disabled={isRegistering}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {isRegistering ? t('settings.aiKey.form.registering') : t('settings.aiKey.form.registerButton')}
+              </Button>
+            </div>
+
+            {/* 오른쪽: 등록된 키 목록 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold font-korean">등록된 AI 키 ({registeredKeys.length}개)</h3>
+              <div className="space-y-3">
+                {isLoadingKeys ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <Key className="h-8 w-8 mx-auto mb-2" />
+                    <p className="text-sm font-korean">{t('settings.aiKey.loading')}</p>
+                  </div>
+                ) : registeredKeys.length > 0 ? (
+                  <div className="space-y-2">
+                    {registeredKeys.map((key) => (
+                      <div 
+                        key={key.id || key.secretName || key.name}
+                        className="group border rounded-lg bg-muted/20 hover:bg-muted/30 hover:border-primary/50 hover:shadow-sm transition-all duration-200 p-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold font-korean text-sm">
+                                {key.secretName || key.name}
+                              </h4>
+                              <Badge variant="default" className="text-xs">
+                                활성
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground font-korean">
+                              {key.description || '설명 없음'}
+                            </p>
+                          </div>
+                          
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeKey(key.id || key.secretName || key.name || '')}
+                              className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+                              title="AI 키 삭제"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Key className="h-12 w-12 mx-auto mb-2" />
+                    <p className="text-sm font-korean">{t('settings.aiKey.noKeys')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button 
-            className="font-korean" 
-            onClick={handleRegister}
-            disabled={isRegistering}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {isRegistering ? t('settings.aiKey.form.registering') : t('settings.aiKey.form.registerButton')}
-          </Button>
-        </CardFooter>
       </Card>
 
     </div>

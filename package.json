@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.4.0",
+    "@auth0/auth0-spa-js": "^2.3.0",
     "@genkit-ai/googleai": "^1.14.1",
     "@genkit-ai/next": "^1.14.1",
     "@gsap/react": "^2.1.2",

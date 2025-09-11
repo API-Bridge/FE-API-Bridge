@@ -132,7 +132,7 @@ const translations = {
     'pricing.pro.description': '강력한 기능이 필요한 전문가 및 팀을 위한 플랜입니다.',
     'pricing.pro.cta': 'Pro 플랜 시작하기',
     'pricing.pro.popular': '가장 인기있는',
-    'pricing.pro.price': '₩9,990',
+    'pricing.pro.price': '₩22,000',
     'pricing.pro.period': '/월',
     // Pricing features
     'pricing.feature.apiCreation.free': '1 API 생성',
@@ -549,7 +549,7 @@ const translations = {
     'pricing.pro.description': 'For professionals and teams who need powerful features.',
     'pricing.pro.cta': 'Start Pro Plan',
     'pricing.pro.popular': 'Most Popular',
-    'pricing.pro.price': '$9.99',
+    'pricing.pro.price': '$22.00',
     'pricing.pro.period': '/month',
     // Pricing features
     'pricing.feature.apiCreation.free': '1 API creation',
@@ -919,7 +919,7 @@ const translations = {
     'pricing.pro.description': '強力な機能が必要な専門家やチームのためのプランです。',
     'pricing.pro.cta': 'プロプランを開始',
     'pricing.pro.popular': '最も人気',
-    'pricing.pro.price': '¥1,290',
+    'pricing.pro.price': '¥2,800',
     'pricing.pro.period': '/月',
     // Pricing features
     'pricing.feature.apiCreation.free': '1 API作成',
@@ -1164,7 +1164,7 @@ const translations = {
     'pricing.pro.description': '为需要强大功能的专业人士和团队设计。',
     'pricing.pro.cta': '开始专业版计划',
     'pricing.pro.popular': '最受欢迎',
-    'pricing.pro.price': '¥68',
+    'pricing.pro.price': '¥150',
     'pricing.pro.period': '/月',
     // Pricing features
     'pricing.feature.apiCreation.free': '1个API创建',
@@ -1409,7 +1409,7 @@ const translations = {
     'pricing.pro.description': 'Для профессионалов и команд, которым нужны мощные функции.',
     'pricing.pro.cta': 'Начать профессиональный план',
     'pricing.pro.popular': 'Самый популярный',
-    'pricing.pro.price': '990 ₽',
+    'pricing.pro.price': '2,200 ₽',
     'pricing.pro.period': '/мес',
     // Pricing features
     'pricing.feature.apiCreation.free': '1 создание API',

@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Play, Clock, Server, Copy, Eye, EyeOff } from "lucide-react";
+import { Play, Clock, Server, Copy, EyeOff } from "lucide-react";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth0 } from "@/contexts/auth0-context";
 import { useState, useEffect } from "react";
-import { getUserCustomAPIs, executeCustomAPI } from "@/lib/api";
+import { getCustomAPIList, executeCustomAPISimple } from "@/lib/api";
 
 // API 타입 정의
 interface APIParameter {
@@ -20,20 +20,35 @@ interface APIParameter {
   required?: boolean;
 }
 
-interface UserAPI {
-  id: string;
+interface CustomAPI {
+  id?: string;
+  customApiId?: string;
   name: string;
   description?: string;
   method?: string;
   endpoint?: string;
+  path?: string;
+  status?: string;
+  calls?: number;
+  callCount?: number;
+  successRate?: string;
+  isShared?: boolean;
+  public?: boolean;
+  apiType?: string;
   parameters?: APIParameter[];
+  pathParameters?: APIParameter[];
+  queryParameters?: APIParameter[];
+  requestBody?: APIParameter[];
+  isImported?: boolean;
+  originalAuthor?: string;
 }
 
 export default function APIUsagePage() {
   const { t } = useLanguage();
+  const { getAccessToken, isAuthenticated } = useAuth0();
   
-  const [userAPIs, setUserAPIs] = useState<UserAPI[]>([]);
-  const [selectedAPI, setSelectedAPI] = useState<UserAPI | null>(null);
+  const [customAPIs, setCustomAPIs] = useState<CustomAPI[]>([]);
+  const [selectedAPI, setSelectedAPI] = useState<CustomAPI | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState("");
@@ -41,34 +56,47 @@ export default function APIUsagePage() {
   const [showResponse, setShowResponse] = useState(false);
 
   useEffect(() => {
-    loadUserAPIs();
-  }, []);
+    loadCustomAPIs();
+  }, [isAuthenticated]);
 
-  const loadUserAPIs = async () => {
+  const loadCustomAPIs = async () => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const apis = await getUserCustomAPIs();
-      setUserAPIs(apis || []);
+      const accessToken = await getAccessToken();
+      const apis = await getCustomAPIList(accessToken);
+      
+      // API 응답 데이터를 프론트엔드 형식에 맞게 변환
+      const transformedApis = (apis || []).map((api: any) => ({
+        ...api,
+        id: api.customApiId,
+        isShared: api.public,
+        calls: api.callCount
+      }));
+      
+      setCustomAPIs(transformedApis);
     } catch (error) {
-      console.error("사용자 API 목록 조회 실패:", error);
-      setUserAPIs([]);
+      console.error('커스텀 API 목록 조회 실패:', error);
+      setCustomAPIs([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAPISelect = (api: UserAPI) => {
+  const handleAPISelect = (api: CustomAPI) => {
     setSelectedAPI(api);
     setExecutionResult("");
     setShowResponse(false);
     
-    // Initialize parameter values
-    const initialParams: Record<string, string> = {};
-    if (api.parameters) {
-      api.parameters.forEach((param: APIParameter) => {
-        initialParams[param.name] = "";
-      });
-    }
+    // Initialize parameter values - 기본 파라미터로 query와 aiPlusActive 설정
+    const initialParams: Record<string, string> = {
+      query: "",
+      aiPlusActive: ""
+    };
     setParamValues(initialParams);
   };
 
@@ -80,11 +108,17 @@ export default function APIUsagePage() {
   };
 
   const handleExecute = async () => {
-    if (!selectedAPI) return;
+    if (!selectedAPI || !selectedAPI.customApiId) return;
 
     setIsExecuting(true);
     try {
-      const result = await executeCustomAPI(selectedAPI.id, paramValues);
+      const accessToken = await getAccessToken();
+      const result = await executeCustomAPISimple(
+        selectedAPI.customApiId, 
+        paramValues.query || "", 
+        accessToken,
+        paramValues.aiPlusActive || undefined
+      );
       setExecutionResult(JSON.stringify(result, null, 2));
       setShowResponse(true);
     } catch (error) {
@@ -98,7 +132,7 @@ export default function APIUsagePage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert(t('apiUsage.results.copied'));
+      alert('결과가 클립보드에 복사되었습니다.');
     });
   };
 
@@ -106,9 +140,9 @@ export default function APIUsagePage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-korean">{t('apiUsage.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight font-korean">API 사용</h1>
           <p className="text-muted-foreground font-korean">
-            {t('apiUsage.description')}
+            내 커스텀 API들을 직접 테스트해보세요
           </p>
         </div>
       </div>
@@ -119,36 +153,36 @@ export default function APIUsagePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-korean">
               <Server className="w-5 h-5" />
-              {t('apiUsage.myCustomApis')}
+              내 커스텀 API
             </CardTitle>
             <CardDescription className="font-korean">
-              {t('apiUsage.selectApiDescription')}
+              테스트할 API를 선택하세요
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground font-korean">{t('apiUsage.loading')}</p>
+                <p className="text-muted-foreground font-korean">로딩 중...</p>
               </div>
-            ) : userAPIs.length === 0 ? (
+            ) : customAPIs.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground font-korean">
-                  {t('apiUsage.noApis')}
+                  등록된 커스텀 API가 없습니다
                 </p>
                 <Button 
                   className="mt-4 font-korean"
                   onClick={() => window.location.href = '/dashboard/suggestions'}
                 >
-                  {t('apiUsage.createApiButton')}
+                  API 생성하기
                 </Button>
               </div>
             ) : (
               <div className="space-y-3">
-                {userAPIs.map((api) => (
+                {customAPIs.map((api) => (
                   <div
-                    key={api.id}
+                    key={api.customApiId || api.id}
                     className={`p-4 rounded-lg border cursor-pointer transition-all hover:bg-muted/50 ${
-                      selectedAPI?.id === api.id ? 'border-primary bg-primary/10' : 'border-border'
+                      selectedAPI?.customApiId === api.customApiId ? 'border-primary bg-primary/10' : 'border-border'
                     }`}
                     onClick={() => handleAPISelect(api)}
                   >
@@ -160,11 +194,14 @@ export default function APIUsagePage() {
                         </p>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">
-                            {api.method}
+                            {api.method || 'GET'}
                           </Badge>
-                          {api.parameters && api.parameters.length > 0 && (
-                            <Badge variant="secondary" className="text-xs font-korean">
-                              {api.parameters.length}{t('apiUsage.parametersCount')}
+                          <Badge variant="secondary" className="text-xs font-korean">
+                            호출 수: {api.callCount || 0}
+                          </Badge>
+                          {api.apiType && (
+                            <Badge variant={api.apiType === 'ORIGINAL' ? 'default' : 'secondary'} className="text-xs font-korean">
+                              {api.apiType === 'ORIGINAL' ? '내 API' : '가져온 API'}
                             </Badge>
                           )}
                         </div>
@@ -182,17 +219,17 @@ export default function APIUsagePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-korean">
               <Play className="w-5 h-5" />
-              {t('apiUsage.execution.title')}
+              API 실행
             </CardTitle>
             <CardDescription className="font-korean">
-              {t('apiUsage.execution.description')}
+              선택한 API에 파라미터를 입력하여 실행하세요
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!selectedAPI ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground font-korean">
-                  {t('apiUsage.execution.selectApiPrompt')}
+                  왼쪽에서 테스트할 API를 선택해주세요
                 </p>
               </div>
             ) : (
@@ -204,9 +241,12 @@ export default function APIUsagePage() {
                     {selectedAPI.description}
                   </p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">{selectedAPI.method}</Badge>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">
-                      {selectedAPI.endpoint}
+                    <Badge variant="outline">{selectedAPI.method || 'GET'}</Badge>
+                    <code className="text-xs bg-muted px-2 py-1 rounded break-all">
+                      {selectedAPI.customApiId ? 
+                        `https://api.api-bridge.com/gateway/aifeature/api/ai/execute/${selectedAPI.customApiId}` :
+                        selectedAPI.endpoint || selectedAPI.path
+                      }
                     </code>
                   </div>
                 </div>
@@ -214,43 +254,62 @@ export default function APIUsagePage() {
                 <Separator />
 
                 {/* 파라미터 입력 */}
-                {selectedAPI.parameters && selectedAPI.parameters.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="font-medium font-korean">파라미터</h4>
                   <div className="space-y-4">
-                    <h4 className="font-medium font-korean">{t('apiUsage.parameters.title')}</h4>
-                    {selectedAPI.parameters.map((param) => (
-                      <div key={param.name} className="space-y-2">
-                        <Label className="flex items-center gap-2 font-korean">
-                          {param.name}
-                          {param.required && <span className="text-red-500">*</span>}
-                          <Badge variant="secondary" className="text-xs">
-                            {param.type}
-                          </Badge>
-                        </Label>
-                        <Input
-                          placeholder={param.description || `${param.name} ${t('apiUsage.parameters.inputPlaceholder')}`}
-                          value={paramValues[param.name] || ""}
-                          onChange={(e) => handleParameterChange(param.name, e.target.value)}
-                          className="font-korean"
-                        />
-                        {param.description && (
-                          <p className="text-xs text-muted-foreground font-korean">
-                            {param.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                    {/* query 파라미터 (필수) */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 font-korean">
+                        query
+                        <span className="text-red-500">*</span>
+                        <Badge variant="secondary" className="text-xs">
+                          string
+                        </Badge>
+                      </Label>
+                      <Input
+                        placeholder="데이터의 조건을 입력해주세요"
+                        value={paramValues.query || ""}
+                        onChange={(e) => handleParameterChange("query", e.target.value)}
+                        className="font-korean"
+                      />
+                      <p className="text-xs text-muted-foreground font-korean">
+                        API가 처리할 데이터 조건이나 요청 내용을 입력하세요
+                      </p>
+                    </div>
+                    
+                    {/* aiPlusActive 파라미터 (선택) */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2 font-korean">
+                        aiPlusActive
+                        <Badge variant="outline" className="text-xs">
+                          선택
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          string
+                        </Badge>
+                      </Label>
+                      <Input
+                        placeholder="추가 요구사항을 입력해주세요 (선택)"
+                        value={paramValues.aiPlusActive || ""}
+                        onChange={(e) => handleParameterChange("aiPlusActive", e.target.value)}
+                        className="font-korean"
+                      />
+                      <p className="text-xs text-muted-foreground font-korean">
+                        AI가 추가로 고려해야 할 요구사항이나 조건을 입력하세요
+                      </p>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 {/* 실행 버튼 */}
                 <div className="pt-4">
                   <Button 
                     onClick={handleExecute}
-                    disabled={isExecuting}
+                    disabled={isExecuting || !paramValues.query}
                     className="w-full font-korean"
                   >
                     <Play className="w-4 h-4 mr-2" />
-                    {isExecuting ? t('apiUsage.execution.executing') : t('apiUsage.execution.executeButton')}
+                    {isExecuting ? 'API 실행 중...' : 'API 실행하기'}
                   </Button>
                 </div>
               </div>
@@ -266,7 +325,7 @@ export default function APIUsagePage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 font-korean">
                 <Clock className="w-5 h-5" />
-                {t('apiUsage.results.title')}
+                실행 결과
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button
@@ -276,7 +335,7 @@ export default function APIUsagePage() {
                   className="font-korean"
                 >
                   <Copy className="w-4 h-4 mr-2" />
-                  {t('apiUsage.results.copyButton')}
+                  복사
                 </Button>
                 <Button
                   variant="outline"
@@ -285,12 +344,12 @@ export default function APIUsagePage() {
                   className="font-korean"
                 >
                   <EyeOff className="w-4 h-4 mr-2" />
-                  {t('apiUsage.results.hideButton')}
+                  숨기기
                 </Button>
               </div>
             </div>
             <CardDescription className="font-korean">
-              {t('apiUsage.results.description')}
+              API 실행 결과를 확인하세요
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { registerExternalAPI, deleteExternalAPI } from "@/lib/api";
+import { registerExternalAPI, deleteExternalAPI, getActiveExternalAPIs } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth0 } from "@/contexts/auth0-context";
 import { 
   Card, 
   CardContent, 
@@ -28,6 +29,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { 
   Users, 
   Activity, 
@@ -38,7 +47,8 @@ import {
   Server,
   Plus,
   Trash2,
-  Globe
+  Globe,
+  Eye
 } from "lucide-react";
 
 // 인터페이스 정의
@@ -94,9 +104,13 @@ export default function AdminPage() {
   const { user, isAdmin } = useUser();
   const { t } = useLanguage();
   const router = useRouter();
+  const { getAccessToken, isAuthenticated } = useAuth0();
 
   // 외부 API 상태 관리
   const [externalApis, setExternalApis] = useState(mockExternalApis);
+  const [isLoadingExternalApis, setIsLoadingExternalApis] = useState(true);
+  const [selectedApi, setSelectedApi] = useState<ExternalAPI | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [apiForm, setApiForm] = useState<APIForm>({
     apiName: '',
     apiDescription: '',
@@ -163,7 +177,26 @@ export default function AdminPage() {
 
   // 파라미터 추가
   const addParameter = () => {
-    if (!currentParam.paramName.trim() || !currentParam.paramDescription.trim()) {
+    // 유효성 검사 강화
+    if (!currentParam.paramName.trim()) {
+      alert('파라미터 이름을 입력해주세요.');
+      return;
+    }
+
+    if (!currentParam.paramDescription.trim()) {
+      alert('파라미터 설명을 입력해주세요.');
+      return;
+    }
+
+    // 파라미터 이름 중복 검사
+    if (apiForm.parameters.some(param => param.paramName === currentParam.paramName)) {
+      alert('이미 존재하는 파라미터 이름입니다.');
+      return;
+    }
+
+    // 파라미터 이름 형식 검사 (영문, 숫자, 언더스코어만 허용)
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(currentParam.paramName)) {
+      alert('파라미터 이름은 영문으로 시작하고 영문, 숫자, 언더스코어만 사용할 수 있습니다.');
       return;
     }
 
@@ -196,9 +229,15 @@ export default function AdminPage() {
       return;
     }
 
+    if (!isAuthenticated) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     setIsAddingApi(true);
 
     try {
+      const accessToken = await getAccessToken();
       const requestBody = {
         apiName: apiForm.apiName,
         apiDescription: apiForm.apiDescription,
@@ -216,23 +255,10 @@ export default function AdminPage() {
         }))
       };
 
-      await registerExternalAPI(requestBody);
+      await registerExternalAPI(requestBody, accessToken);
 
-      // 성공 시 임시로 클라이언트 목록에 추가 (실제로는 API에서 목록을 다시 가져와야 함)
-      const newApi: ExternalAPI = {
-        id: Date.now().toString(),
-        name: apiForm.apiName,
-        url: apiForm.apiUrl,
-        description: apiForm.apiDescription || `${apiForm.apiName} 외부 API`,
-        issuer: apiForm.apiIssuer,
-        method: apiForm.httpMethod,
-        credentialId: apiForm.credentialId,
-        parameters: apiForm.parameters,
-        status: 'active' as 'active',
-        addedDate: new Date().toISOString().split('T')[0]
-      };
-
-      setExternalApis(prev => [...prev, newApi]);
+      // 성공 시 목록 새로고침
+      await loadExternalAPIs();
       
       // 폼 초기화
       setApiForm({ 
@@ -246,15 +272,76 @@ export default function AdminPage() {
       });
       setApiErrors({ apiName: '', apiUrl: '', apiIssuer: '', credentialId: '' });
 
-      console.log(t('admin.externalApi.success.registered'));
-      alert(t('admin.externalApi.success.registeredAlert'));
+      alert(`${apiForm.apiName} API가 성공적으로 등록되었습니다.`);
 
-    } catch (error) {
-      console.error(t('admin.externalApi.error.registrationFailed'), error);
-      alert(t('admin.externalApi.error.registrationAlert'));
+    } catch (error: any) {
+      console.error('외부 API 등록 실패:', error);
+      
+      // 에러 메시지 개선
+      let errorMessage = 'API 등록에 실패했습니다.';
+      if (error?.message?.includes('400')) {
+        errorMessage = '입력 정보를 확인해주세요. 잘못된 형식의 데이터입니다.';
+      } else if (error?.message?.includes('401')) {
+        errorMessage = '인증에 실패했습니다. 다시 로그인해주세요.';
+      } else if (error?.message?.includes('403')) {
+        errorMessage = '권한이 없습니다. 관리자 권한이 필요합니다.';
+      } else if (error?.message?.includes('409')) {
+        errorMessage = '이미 존재하는 API 이름입니다. 다른 이름을 사용해주세요.';
+      } else if (error?.message?.includes('500')) {
+        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsAddingApi(false);
     }
+  };
+
+  // 외부 API 목록 로드
+  const loadExternalAPIs = async () => {
+    if (!isAuthenticated) {
+      setIsLoadingExternalApis(false);
+      return;
+    }
+
+    try {
+      setIsLoadingExternalApis(true);
+      const accessToken = await getAccessToken();
+      const apis = await getActiveExternalAPIs(accessToken);
+      
+      // API 응답을 ExternalAPI 형식으로 변환
+      const transformedApis: ExternalAPI[] = (apis || []).map((api: any) => ({
+        id: api.apiId || api.id || Date.now().toString(),
+        name: api.apiName,
+        description: api.apiDescription,
+        issuer: api.apiIssuer,
+        url: api.apiUrl,
+        method: api.httpMethod,
+        credentialId: api.credentialId || '',
+        status: api.isActive ? 'active' : 'inactive' as 'active' | 'inactive',
+        addedDate: api.createdAt ? new Date(api.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        parameters: (api.parameters || []).map((param: any) => ({
+          paramName: param.paramName,
+          paramType: param.paramType,
+          isRequired: param.isRequired,
+          paramDescription: param.paramDescription,
+          defaultValue: param.defaultValue
+        }))
+      }));
+      
+      setExternalApis(transformedApis);
+    } catch (error) {
+      console.error('외부 API 목록 조회 실패:', error);
+      setExternalApis([]);
+    } finally {
+      setIsLoadingExternalApis(false);
+    }
+  };
+
+  // API 상세 정보 보기
+  const handleViewApiDetail = (api: ExternalAPI) => {
+    setSelectedApi(api);
+    setIsDetailModalOpen(true);
   };
 
   // API 삭제
@@ -264,7 +351,8 @@ export default function AdminPage() {
     }
 
     try {
-      await deleteExternalAPI(apiId);
+      const accessToken = await getAccessToken();
+      await deleteExternalAPI(apiId, accessToken);
       setExternalApis(prev => prev.filter(api => api.id !== apiId));
       console.log(t('admin.externalApi.success.deleted'));
       alert(t('admin.externalApi.success.deletedAlert'));
@@ -273,6 +361,13 @@ export default function AdminPage() {
       alert(t('admin.externalApi.error.deletionAlert'));
     }
   };
+
+  // 외부 API 로드
+  useEffect(() => {
+    if (isAuthenticated && user && isAdmin) {
+      loadExternalAPIs();
+    }
+  }, [isAuthenticated, user, isAdmin]);
 
   // 관리자가 아닌 경우 접근 차단
   useEffect(() => {
@@ -613,52 +708,232 @@ export default function AdminPage() {
             {/* 등록된 API 목록 */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold font-korean">{t('admin.externalApi.list.title')} ({externalApis.length}{t('admin.externalApi.list.count')})</h3>
-              <div className="max-h-96 overflow-y-auto space-y-2">
-                {externalApis.length === 0 ? (
+              <div className="space-y-3">
+                {isLoadingExternalApis ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Server className="h-12 w-12 mx-auto mb-2" />
+                    <p className="font-korean">로딩 중...</p>
+                  </div>
+                ) : externalApis.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Server className="h-12 w-12 mx-auto mb-2" />
                     <p className="font-korean">{t('admin.externalApi.list.empty')}</p>
                   </div>
                 ) : (
-                  externalApis.map((api) => (
-                    <div key={api.id} className="p-4 border rounded-lg bg-muted/20 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold font-korean">{api.name}</h4>
-                            <Badge variant={api.status === 'active' ? 'default' : 'secondary'}>
-                              {api.status === 'active' ? t('admin.externalApi.list.active') : t('admin.externalApi.list.inactive')}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground font-korean mt-1">
-                            {api.url}
-                          </p>
-                          {api.description && (
-                            <p className="text-xs text-muted-foreground font-korean mt-1">
-                              {api.description}
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground font-korean mt-2">
-                            {t('admin.externalApi.list.registeredDate')}: {api.addedDate}
-                          </p>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteApi(api.id)}
-                          className="ml-2"
+                  <>
+                    {externalApis.map((api) => (
+                      <div key={api.id} className="group border-2 border-border hover:border-primary/50 rounded-lg bg-muted/20 hover:bg-muted/30 hover:shadow-lg transition-all duration-200">
+                        <div 
+                          className="p-4 cursor-pointer"
+                          onClick={() => handleViewApiDetail(api)}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-semibold font-korean text-base group-hover:text-primary transition-colors">
+                                  {api.name}
+                                </h4>
+                                <Badge variant={api.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                  {api.status === 'active' ? t('admin.externalApi.list.active') : t('admin.externalApi.list.inactive')}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs font-mono">
+                                  {api.method}
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground font-korean">
+                                <span>제공: {api.issuer}</span>
+                                <span>•</span>
+                                <span>{api.addedDate}</span>
+                                {api.parameters.length > 0 && (
+                                  <>
+                                    <span>•</span>
+                                    <span>파라미터 {api.parameters.length}개</span>
+                                  </>
+                                )}
+                              </div>
+                              
+                              <p className="text-sm text-muted-foreground font-korean truncate max-w-md">
+                                {api.description || '설명 없음'}
+                              </p>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteApi(api.id);
+                                }}
+                                title="API 삭제"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    
+                    {externalApis.length > 3 && (
+                      <div className="text-center pt-4">
+                        <p className="text-sm text-muted-foreground font-korean">
+                          총 {externalApis.length}개의 외부 API가 등록되어 있습니다
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* API 상세 정보 모달 */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-korean">
+              <Globe className="h-5 w-5" />
+              {selectedApi?.name} API 상세 정보
+            </DialogTitle>
+            <DialogDescription className="font-korean">
+              외부 API의 상세 정보와 파라미터를 확인하세요
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedApi && (
+            <div className="space-y-6">
+              {/* 기본 정보 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium font-korean">API 이름</Label>
+                    <p className="text-sm text-muted-foreground font-korean mt-1">{selectedApi.name}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium font-korean">제공자</Label>
+                    <p className="text-sm text-muted-foreground font-korean mt-1">{selectedApi.issuer}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium font-korean">HTTP 메소드</Label>
+                    <div className="mt-1">
+                      <Badge variant="outline" className="font-mono">
+                        {selectedApi.method}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium font-korean">상태</Label>
+                    <div className="mt-1">
+                      <Badge variant={selectedApi.status === 'active' ? 'default' : 'secondary'}>
+                        {selectedApi.status === 'active' ? '활성' : '비활성'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium font-korean">등록일</Label>
+                    <p className="text-sm text-muted-foreground font-korean mt-1">{selectedApi.addedDate}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium font-korean">Credential ID</Label>
+                    <p className="text-sm text-muted-foreground font-korean mt-1 font-mono">
+                      {selectedApi.credentialId || '없음'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* API URL */}
+              <div>
+                <Label className="text-sm font-medium font-korean">API URL</Label>
+                <div className="mt-2 p-3 bg-muted/40 rounded-lg border">
+                  <p className="text-sm font-mono break-all">{selectedApi.url}</p>
+                </div>
+              </div>
+
+              {/* 설명 */}
+              {selectedApi.description && (
+                <div>
+                  <Label className="text-sm font-medium font-korean">설명</Label>
+                  <p className="text-sm text-muted-foreground font-korean mt-2 leading-relaxed">
+                    {selectedApi.description}
+                  </p>
+                </div>
+              )}
+
+              {/* 파라미터 */}
+              <div>
+                <Label className="text-sm font-medium font-korean">
+                  파라미터 ({selectedApi.parameters.length}개)
+                </Label>
+                {selectedApi.parameters.length > 0 ? (
+                  <div className="mt-3 space-y-3">
+                    {selectedApi.parameters.map((param, index) => (
+                      <div key={index} className="p-3 border rounded-lg bg-muted/20">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium font-korean">{param.paramName}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {param.paramType}
+                              </Badge>
+                              {param.isRequired && (
+                                <Badge variant="destructive" className="text-xs">
+                                  필수
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground font-korean">
+                              {param.paramDescription}
+                            </p>
+                            {param.defaultValue && (
+                              <p className="text-xs text-muted-foreground font-korean">
+                                기본값: <span className="font-mono">{param.defaultValue}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground font-korean mt-2">
+                    파라미터가 없습니다
+                  </p>
+                )}
+              </div>
+
+              {/* 액션 버튼 */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDetailModalOpen(false)}
+                  className="font-korean"
+                >
+                  닫기
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    handleDeleteApi(selectedApi.id);
+                  }}
+                  className="font-korean"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  삭제
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

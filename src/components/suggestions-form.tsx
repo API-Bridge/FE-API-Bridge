@@ -14,9 +14,11 @@ import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useLanguage } from "@/contexts/language-context";
+import { useAuth0 } from "@/contexts/auth0-context";
 
 export function SuggestionsForm() {
   const { t } = useLanguage();
+  const { getAccessToken } = useAuth0();
   const [dataDescription, setDataDescription] = useState("");
   const [apiName, setApiName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,8 @@ export function SuggestionsForm() {
     setLoading(true);
     setResult(null);
     try {
-      const response = await createCustomAPISimple(dataDescription, apiName);
+      const accessToken = await getAccessToken();
+      const response = await createCustomAPISimple(dataDescription, apiName, accessToken);
       setResult(response);
       toast({
         title: "성공",

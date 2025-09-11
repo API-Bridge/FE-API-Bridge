@@ -29,6 +29,8 @@ import { useTheme } from "@/contexts/theme-context";
 import SplitText from "@/components/SplitText";
 import ScrollReveal from "@/components/ScrollReveal";
 import dynamic from "next/dynamic";
+import { useAuth0 } from "@/contexts/auth0-context";
+import { useRouter } from "next/navigation";
 
 const AnimatedBackground = dynamic(() => import("@/components/animated-background"), {
   ssr: false,
@@ -39,9 +41,35 @@ const AnimatedBackground = dynamic(() => import("@/components/animated-backgroun
 export default function LandingPage() {
   const { t, language } = useLanguage();
   const { theme } = useTheme();
+  const { login, logout, isAuthenticated, isLoading } = useAuth0();
+  const router = useRouter();
+
 
   const handleAnimationComplete = () => {
     console.log('All letters have animated!');
+  };
+
+  const handleStartClick = async () => {
+    console.log('handleStartClick called', { isAuthenticated, isLoading });
+    
+    // Auth0가 아직 로딩 중이면 함수 종료
+    if (isLoading) {
+      console.log('Auth0 still loading, ignoring click');
+      return;
+    }
+    
+    try {
+      if (!isAuthenticated) {
+        console.log('Not authenticated, calling Auth0 login...');
+        await login();
+      } else {
+        console.log('Already authenticated, redirecting to dashboard...');
+        // 이미 로그인된 경우 대시보드로 이동
+        window.location.href = '/dashboard';
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   useEffect(() => {
@@ -279,11 +307,16 @@ export default function LandingPage() {
           <div className="flex items-center space-x-2 ml-auto">
             <LanguageToggle />
             <ThemeToggle />
-            <Button size="sm" asChild>
-              <Link href="/login" prefetch={true}>
-                {t('nav.getstarted')} <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+            {!isAuthenticated ? (
+              <Button size="sm" onClick={login} disabled={isLoading}>
+                {isLoading ? '로딩...' : t('nav.getstarted')} 
+                {!isLoading && <ArrowRight className="ml-1 h-4 w-4" />}
+              </Button>
+            ) : (
+              <Button size="sm" onClick={logout} variant="outline" disabled={isLoading}>
+                로그아웃
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -311,10 +344,9 @@ export default function LandingPage() {
               {t('hero.description')}
             </p>
             <div className="space-x-6 pt-4">
-              <Button size="lg" className="text-lg px-8 py-4 h-auto" asChild>
-                <Link href="/login" prefetch={true} className="font-korean">
-                  {t('hero.cta')} <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button size="lg" className="text-lg px-8 py-4 h-auto font-korean" onClick={handleStartClick} disabled={isLoading}>
+                {isLoading ? '로딩...' : t('hero.cta')} 
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
               <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto" asChild>
                 <Link href="#features" className="font-korean">
@@ -478,12 +510,12 @@ export default function LandingPage() {
             <div className="pt-8">
               <Button 
                 size="lg" 
-                className="text-xl px-12 py-6 h-auto" 
-                asChild
+                className="text-xl px-12 py-6 h-auto font-korean" 
+                onClick={handleStartClick}
+                disabled={isLoading}
               >
-                <Link href="/login" prefetch={true} className="font-korean">
-                  {t('hero.cta')} <ArrowRight className="ml-3 h-5 w-5" />
-                </Link>
+                {isLoading ? '로딩...' : (isAuthenticated ? '대시보드로 이동' : t('hero.cta'))} 
+                {!isLoading && <ArrowRight className="ml-3 h-5 w-5" />}
               </Button>
             </div>
           </div>

@@ -1,9 +1,11 @@
 
 import type {Metadata} from 'next';
+import Script from 'next/script';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/contexts/theme-context"
 import { LanguageProvider } from "@/contexts/language-context"
 import { UserProvider } from "@/contexts/user-context"
+import { Auth0Provider } from "@/contexts/auth0-context"
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -24,12 +26,18 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Comfortaa:wght@400;500;600;700&family=Chiron+GoRound+TC:wght@300&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body bg-background text-foreground antialiased font-semibold">
+        <Script 
+          src="https://js.tosspayments.com/v2" 
+          strategy="lazyOnload"
+        />
         <LanguageProvider>
           <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
-            <UserProvider>
-              {children}
-              <Toaster />
-            </UserProvider>
+            <Auth0Provider>
+              <UserProvider>
+                {children}
+                <Toaster />
+              </UserProvider>
+            </Auth0Provider>
           </ThemeProvider>
         </LanguageProvider>
       </body>

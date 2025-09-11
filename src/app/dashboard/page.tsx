@@ -3,17 +3,13 @@
 
 import {
   Activity,
-  ArrowUpRight,
-  Copy,
   CreditCard,
   KeyRound,
-  MoreVertical,
   Share2,
   CodeXml as ApiIcon,
   Search,
   Trash2,
 } from "lucide-react";
-import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -34,7 +30,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Dialog,
@@ -59,7 +54,8 @@ import {
   TabsContent,
 } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/language-context";
-import { getCustomAPIList, shareCustomAPI } from "@/lib/api";
+import { useAuth0 } from "@/contexts/auth0-context";
+import { getCustomAPIList, shareCustomAPI, getCustomAPIDetail, deleteCustomAPI } from "@/lib/api";
 
 // API 타입 정의
 interface APIParameter {
@@ -76,6 +72,7 @@ interface APIParameter {
 
 interface CustomAPI {
   id?: string;
+  customApiId?: string;
   name: string;
   description?: string;
   method?: string;
@@ -83,44 +80,78 @@ interface CustomAPI {
   path?: string;
   status?: string;
   calls?: number;
+  callCount?: number;
   successRate?: string;
   isShared?: boolean;
+  public?: boolean;
+  apiType?: string;
   parameters?: APIParameter[];
   pathParameters?: APIParameter[];
   queryParameters?: APIParameter[];
   requestBody?: APIParameter[];
   isImported?: boolean;
   originalAuthor?: string;
+  createdAt?: string;
 }
 
+
+// 설명 텍스트를 적절한 길이로 자르는 함수
+const truncateDescription = (description: string | undefined, maxLength: number = 80) => {
+  if (!description) return '';
+  return description.length > maxLength 
+    ? description.substring(0, maxLength).trim() + '...'
+    : description;
+};
+
 export default function Dashboard() {
-  const { t, translateIfExists } = useLanguage();
+  const { t } = useLanguage();
+  const { getAccessToken, isAuthenticated } = useAuth0();
+  
+  console.log('Dashboard 렌더링, isAuthenticated:', isAuthenticated);
   const [customAPIs, setCustomAPIs] = useState<CustomAPI[]>([]);
-  const [sharedAPIs] = useState<CustomAPI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<'myApis' | 'imported'>('myApis');
-  const [deleteApiName, setDeleteApiName] = useState<string | null>(null);
+  const [deleteApiId, setDeleteApiId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedApi, setSelectedApi] = useState<CustomAPI | null>(null);
+  const [apiDetail, setApiDetail] = useState<any>(null);
   const [isApiDetailOpen, setIsApiDetailOpen] = useState(false);
   
   const [apiSharedStatus, setApiSharedStatus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    console.log('useEffect 실행, isAuthenticated:', isAuthenticated);
     loadCustomAPIs();
-  }, []);
+  }, [isAuthenticated]);
 
   const loadCustomAPIs = async () => {
+    if (!isAuthenticated) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const apis = await getCustomAPIList();
-      setCustomAPIs(apis || []);
+      const accessToken = await getAccessToken();
+      const apis = await getCustomAPIList(accessToken);
       
-      // Initialize shared status
+      // API 응답 데이터를 프론트엔드 형식에 맞게 변환
+      const transformedApis = (apis || []).map((api: any) => ({
+        ...api,
+        id: api.customApiId,
+        isShared: api.public,
+        calls: api.callCount
+      }));
+      
+      setCustomAPIs(transformedApis);
+      
+      // Initialize shared status using customApiId
       const sharedStatus: Record<string, boolean> = {};
-      (apis || []).forEach((api: CustomAPI) => {
-        sharedStatus[api.name] = api.isShared || false;
+      transformedApis.forEach((api: CustomAPI) => {
+        if (api.customApiId) {
+          sharedStatus[api.customApiId] = api.isShared || false;
+        }
       });
       setApiSharedStatus(sharedStatus);
     } catch (error) {
@@ -132,54 +163,120 @@ export default function Dashboard() {
   };
 
 
-  const toggleShare = async (apiName: string) => {
+  const toggleShare = async (customApiId: string) => {
     try {
-      const newSharedStatus = !apiSharedStatus[apiName];
-      await shareCustomAPI(apiName, newSharedStatus);
+      const accessToken = await getAccessToken();
+      const newSharedStatus = !apiSharedStatus[customApiId];
+      await shareCustomAPI(customApiId, accessToken, newSharedStatus);
       setApiSharedStatus(prev => ({
         ...prev,
-        [apiName]: newSharedStatus
+        [customApiId]: newSharedStatus
       }));
+      
+      // Update the customAPIs state to reflect the change
+      setCustomAPIs(prevApis => 
+        prevApis.map(api => 
+          api.customApiId === customApiId 
+            ? { ...api, isShared: newSharedStatus }
+            : api
+        )
+      );
     } catch (error) {
       console.error('공유 상태 변경 실패:', error);
       alert('공유 상태 변경에 실패했습니다.');
     }
   };
 
-  const handleDeleteApi = (apiName: string) => {
-    // 실제 삭제 로직 구현
-    console.log(`Deleting API: ${apiName}`);
-    // TODO: API 삭제 요청을 서버에 보내기
-    setDeleteApiName(null);
-    setIsDeleteDialogOpen(false);
+  const handleDeleteApi = async (customApiId: string) => {
+    try {
+      const accessToken = await getAccessToken();
+      await deleteCustomAPI(customApiId, accessToken);
+      
+      // 로컬 상태에서 삭제된 API 제거
+      setCustomAPIs(prevApis => prevApis.filter(api => api.customApiId !== customApiId));
+      
+      // 공유 상태에서도 제거
+      setApiSharedStatus(prev => {
+        const newStatus = { ...prev };
+        delete newStatus[customApiId];
+        return newStatus;
+      });
+      
+      setDeleteApiId(null);
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('API 삭제 실패:', error);
+      alert('API 삭제에 실패했습니다.');
+    }
   };
 
-  const openDeleteDialog = (apiName: string) => {
-    setDeleteApiName(apiName);
+  const openDeleteDialog = (customApiId: string) => {
+    setDeleteApiId(customApiId);
     setIsDeleteDialogOpen(true);
   };
 
   const closeDeleteDialog = () => {
-    setDeleteApiName(null);
+    setDeleteApiId(null);
     setIsDeleteDialogOpen(false);
   };
 
-  const openApiDetail = (api: CustomAPI) => {
+  const openApiDetail = async (api: CustomAPI) => {
     setSelectedApi(api);
     setIsApiDetailOpen(true);
+    
+    // API 상세 정보 가져오기 - externalApiUrl_list 확인을 위함
+    if (api.id && isAuthenticated) {
+      try {
+        const accessToken = await getAccessToken();
+        const detail = await getCustomAPIDetail(api.id, accessToken);
+        setApiDetail(detail);
+        console.log('API 상세 정보:', detail);
+        console.log('externalApiUrl_list:', detail?.externalApiUrl_list);
+      } catch (error) {
+        console.error('API 상세 정보 조회 실패:', error);
+        setApiDetail(null);
+      }
+    }
   };
 
   const closeApiDetail = () => {
     setSelectedApi(null);
+    setApiDetail(null);
     setIsApiDetailOpen(false);
   };
 
+  // 통계 계산 (내 API만 기준)
+  const stats = useMemo(() => {
+    const myApis = customAPIs.filter(api => api.apiType === 'ORIGINAL');
+    const totalApis = myApis.length;
+    const totalCalls = myApis.reduce((sum, api) => sum + (api.callCount || 0), 0);
+    const activeKeys = myApis.filter(api => (api.callCount || 0) > 0).length;
+    
+    // 가동시간: callCount에 따라 0% ~ 99.9% 범위로 계산
+    let uptime = 0;
+    if (totalCalls > 1000) uptime = 99.9;
+    else if (totalCalls > 100) uptime = 99.5;
+    else if (totalCalls > 10) uptime = 99.2;
+    else if (totalCalls > 0) uptime = 99.0;
+    
+    return {
+      totalApis,
+      totalCalls,
+      activeKeys,
+      uptime: uptime.toFixed(1)
+    };
+  }, [customAPIs]);
+
   const filteredApis = useMemo(() => {
     let apiList: CustomAPI[];
+    
+    // apiType을 기준으로 필터링
     if (activeFilter === 'imported') {
-      apiList = sharedAPIs;
+      // 가져온 API: apiType이 'ORIGINAL'이 아닌 모든 API
+      apiList = customAPIs.filter(api => api.apiType !== 'ORIGINAL');
     } else {
-      apiList = customAPIs;
+      // 내 API: apiType이 'ORIGINAL'인 API
+      apiList = customAPIs.filter(api => api.apiType === 'ORIGINAL');
     }
     
     // 검색어로 필터링
@@ -188,7 +285,7 @@ export default function Dashboard() {
       api.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       api.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [customAPIs, sharedAPIs, searchQuery, activeFilter]);
+  }, [customAPIs, searchQuery, activeFilter]);
 
   return (
     <>
@@ -199,9 +296,9 @@ export default function Dashboard() {
             <ApiIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
+            <div className="text-2xl font-bold">{stats.totalApis}</div>
             <p className="text-xs text-muted-foreground font-korean">
-              +2 {t('dashboard.stats.lastMonth')}
+              {stats.totalApis > 0 ? `활성화된 API ${stats.totalApis}개` : '등록된 API 없음'}
             </p>
           </CardContent>
         </Card>
@@ -211,9 +308,9 @@ export default function Dashboard() {
             <KeyRound className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
+            <div className="text-2xl font-bold">{stats.activeKeys}</div>
             <p className="text-xs text-muted-foreground font-korean">
-              +3 {t('dashboard.stats.lastWeek')}
+              {stats.activeKeys > 0 ? `호출 기록이 있는 API ${stats.activeKeys}개` : '사용 기록 없음'}
             </p>
           </CardContent>
         </Card>
@@ -223,9 +320,9 @@ export default function Dashboard() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12,234,567</div>
+            <div className="text-2xl font-bold">{stats.totalCalls.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground font-korean">
-              +19% {t('dashboard.stats.vsLastMonth')}
+              {stats.totalCalls > 0 ? '전체 API 호출 횟수' : '아직 호출 기록이 없습니다'}
             </p>
           </CardContent>
         </Card>
@@ -235,9 +332,9 @@ export default function Dashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">99.9%</div>
+            <div className="text-2xl font-bold">{stats.uptime}%</div>
             <p className="text-xs text-muted-foreground font-korean">
-              {t('dashboard.stats.allActiveApis')}
+              {stats.totalCalls > 0 ? 'API 서비스 가동률' : '아직 사용되지 않음'}
             </p>
           </CardContent>
         </Card>
@@ -305,7 +402,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead className="font-korean w-[40%]">{t('dashboard.table.apiName')}</TableHead>
                   <TableHead className="text-center font-korean w-[15%]">{t('dashboard.table.method')}</TableHead>
-                  <TableHead className="text-center font-korean w-[15%]">{t('dashboard.table.parameters')}</TableHead>
+                  <TableHead className="text-center font-korean w-[15%]">호출 수</TableHead>
                   <TableHead className="text-center font-korean w-[20%]">{t('dashboard.table.sharing')}</TableHead>
                   <TableHead className="w-[10%] text-center font-korean">{t('dashboard.table.actions')}</TableHead>
                 </TableRow>
@@ -319,7 +416,7 @@ export default function Dashboard() {
                           {api.name}
                         </div>
                         <div className="text-sm text-muted-foreground font-korean mt-1">
-                          {api.description || t('dashboard.noDescription')}
+                          {truncateDescription(api.description) || t('dashboard.noDescription')}
                         </div>
                       </div>
                     </TableCell>
@@ -330,7 +427,7 @@ export default function Dashboard() {
                     </TableCell>
                     <TableCell className="text-center w-[15%]">
                       <span className="text-sm font-korean">
-                        {api.parameters ? api.parameters.length : 0}{t('dashboard.parametersCount')}
+                        {api.callCount || 0}
                       </span>
                     </TableCell>
                     <TableCell className="text-center w-[20%]">
@@ -338,19 +435,21 @@ export default function Dashboard() {
                         {activeFilter === 'myApis' ? (
                           <Button
                             size="sm"
-                            variant={apiSharedStatus[api.name] ? "default" : "secondary"}
+                            variant={api.customApiId && apiSharedStatus[api.customApiId] ? "default" : "secondary"}
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleShare(api.name);
+                              if (api.customApiId) {
+                                toggleShare(api.customApiId);
+                              }
                             }}
                             className={`gap-1 w-20 font-korean font-bold ${
-                              apiSharedStatus[api.name] 
+                              api.customApiId && apiSharedStatus[api.customApiId] 
                                 ? "bg-sky-500 hover:bg-sky-600 text-white dark:bg-white dark:text-black dark:hover:bg-white/90" 
                                 : ""
                             }`}
                           >
                             <Share2 className="h-3 w-3" />
-                            {apiSharedStatus[api.name] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
+                            {api.customApiId && apiSharedStatus[api.customApiId] ? t('dashboard.share.sharing') : t('dashboard.share.share')}
                           </Button>
                         ) : (
                           <span className="text-sm text-muted-foreground font-korean">
@@ -360,17 +459,23 @@ export default function Dashboard() {
                       </div>
                     </TableCell>
                     <TableCell className="w-[10%] text-center">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-white dark:text-red-400 dark:hover:bg-red-950 font-korean"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteDialog(api.name);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 dark:text-white" />
-                      </Button>
+                      {activeFilter === 'myApis' ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-white dark:text-red-400 dark:hover:bg-red-950 font-korean"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (api.customApiId) {
+                              openDeleteDialog(api.customApiId);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 dark:text-white" />
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground font-korean">-</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -388,9 +493,11 @@ export default function Dashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle className="font-korean">{t('dashboard.delete.title')}</AlertDialogTitle>
             <AlertDialogDescription className="font-korean">
-              {deleteApiName && (
+              {deleteApiId && (
                 <>
-                  <strong className="text-lg">{deleteApiName}</strong>
+                  <strong className="text-lg">
+                    {customAPIs.find(api => api.customApiId === deleteApiId)?.name || 'API'}
+                  </strong>
                   <br />
                   <span className="text-sm text-muted-foreground mt-2 block">
                     {t('dashboard.delete.warning')}
@@ -404,7 +511,7 @@ export default function Dashboard() {
               {t('dashboard.delete.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => deleteApiName && handleDeleteApi(deleteApiName)}
+              onClick={() => deleteApiId && handleDeleteApi(deleteApiId)}
               className="bg-red-600 hover:bg-red-700 font-korean"
             >
               {t('dashboard.delete.confirm')}
@@ -427,29 +534,40 @@ export default function Dashboard() {
             {/* API 기본 정보 */}
             <div>
               <h3 className="font-semibold text-lg mb-3 font-korean">{t('dashboard.modal.basicInfo')}</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.apiPath')}</label>
-                  <div className="px-3 py-2 bg-muted rounded-md font-mono text-sm">
-                    {selectedApi?.path}
+                  <div className="px-3 py-2 bg-muted rounded-md font-mono text-sm break-all">
+                    {selectedApi?.customApiId ? `https://api.api-bridge.com/gateway/aifeature/api/ai/execute/${selectedApi.customApiId}` : selectedApi?.path}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.status')}</label>
-                  <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
-                    {t(`dashboard.status.${selectedApi?.status}`)}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground font-korean">생성일</label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
+                      {selectedApi?.createdAt ? new Date(selectedApi.createdAt).toLocaleDateString('ko-KR') : '-'}
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.totalCalls')}</label>
-                  <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
-                    {selectedApi?.calls}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground font-korean">{t('dashboard.modal.successRate')}</label>
-                  <div className="px-3 py-2 bg-muted rounded-md text-sm font-korean">
-                    {selectedApi?.successRate}
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-muted-foreground font-korean">파라미터</label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm space-y-2">
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-background rounded text-xs font-mono">
+                          query={'{데이터의 조건 입력}'}
+                        </code>
+                        <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
+                          필수
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-background rounded text-xs font-mono">
+                          aiPlusActive={'{추가 요구사항}'}
+                        </code>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-korean">
+                          선택
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -457,108 +575,80 @@ export default function Dashboard() {
 
             <Separator />
 
-            {/* API 파라미터 */}
+            {/* 사용되는 API */}
             <div>
-              <h3 className="font-semibold text-lg mb-3 font-korean">{t('dashboard.modal.parameters')}</h3>
-              <Tabs defaultValue="path" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="path" className="font-korean">
-                    Path Parameters ({selectedApi?.pathParameters?.length || 0})
-                  </TabsTrigger>
-                  <TabsTrigger value="query" className="font-korean">
-                    Query Parameters ({selectedApi?.queryParameters?.length || 0})
-                  </TabsTrigger>
-                  <TabsTrigger value="body" className="font-korean">
-                    Request Body ({selectedApi?.requestBody?.length || 0})
+              <h3 className="font-semibold text-lg mb-3 font-korean">사용되는 API</h3>
+              <Tabs defaultValue="dependencies" className="w-full">
+                <TabsList className="grid w-full grid-cols-1">
+                  <TabsTrigger value="dependencies" className="font-korean">
+                    의존 외부 API ({apiDetail?.data?.externalApiUrl_list?.length || 0})
                   </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="path" className="mt-4">
-                  {selectedApi?.pathParameters && selectedApi.pathParameters.length > 0 ? (
+                <TabsContent value="dependencies" className="mt-4">
+                  {apiDetail?.data?.externalApiUrl_list && apiDetail.data.externalApiUrl_list.length > 0 ? (
                     <div className="space-y-3">
-                      {selectedApi.pathParameters.map((param: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-3 space-y-2">
+                      {apiDetail.data.externalApiUrl_list.map((externalApi: any, index: number) => (
+                        <div key={index} className="border rounded-lg p-4 space-y-3">
                           <div className="flex items-center gap-2">
-                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
-                              {param.name}
-                            </code>
-                            <span className="text-sm text-muted-foreground">
-                              ({param.type})
-                            </span>
-                            {param.required && (
-                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
-                                {t('dashboard.modal.required')}
-                              </span>
+                            <h4 className="font-semibold text-base font-korean">
+                              {externalApi.apiName || `외부 API ${index + 1}`}
+                            </h4>
+                            {externalApi.httpMethod && (
+                              <Badge variant="outline" className="font-mono">
+                                {externalApi.httpMethod}
+                              </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground font-korean">
-                            {param.description}
-                          </p>
+                          
+                          <div className="grid grid-cols-1 gap-3 text-sm">
+                            {externalApi.endpoint && (
+                              <div>
+                                <label className="font-medium text-muted-foreground font-korean">Endpoint</label>
+                                <div className="px-2 py-1 bg-muted rounded text-xs font-mono break-all">
+                                  {externalApi.endpoint}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {externalApi.parameters && externalApi.parameters.length > 0 && (
+                            <div>
+                              <label className="font-medium text-muted-foreground font-korean mb-2 block">파라미터</label>
+                              <div className="space-y-2">
+                                {externalApi.parameters.map((param: any, paramIndex: number) => (
+                                  <div key={paramIndex} className="border rounded p-2 space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <code className="px-2 py-1 bg-muted rounded text-xs font-mono">
+                                        {param.paramName}
+                                      </code>
+                                      <span className="text-xs text-muted-foreground">({param.paramType})</span>
+                                      {param.necessary ? (
+                                        <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs font-korean">
+                                          필수
+                                        </span>
+                                      ) : (
+                                        <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs font-korean">
+                                          선택
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground font-korean">
+                                      {param.description}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm font-korean">Path Parameter가 없습니다.</p>
+                    <p className="text-muted-foreground text-sm font-korean">의존하는 외부 API가 없습니다.</p>
                   )}
                 </TabsContent>
                 
-                <TabsContent value="query" className="mt-4">
-                  {selectedApi?.queryParameters && selectedApi.queryParameters.length > 0 ? (
-                    <div className="space-y-3">
-                      {selectedApi.queryParameters.map((param: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
-                              {param.name}
-                            </code>
-                            <span className="text-sm text-muted-foreground">
-                              ({param.type})
-                            </span>
-                            {param.required && (
-                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
-                                {t('dashboard.modal.required')}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground font-korean">
-                            {param.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm font-korean">Query Parameter가 없습니다.</p>
-                  )}
-                </TabsContent>
-                
-                <TabsContent value="body" className="mt-4">
-                  {selectedApi?.requestBody && selectedApi.requestBody.length > 0 ? (
-                    <div className="space-y-3">
-                      {selectedApi.requestBody.map((param: any, index: number) => (
-                        <div key={index} className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <code className="px-2 py-1 bg-muted rounded text-sm font-mono">
-                              {param.name}
-                            </code>
-                            <span className="text-sm text-muted-foreground">
-                              ({param.type})
-                            </span>
-                            {param.required && (
-                              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded font-korean">
-                                {t('dashboard.modal.required')}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground font-korean">
-                            {param.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm font-korean">Request Body가 없습니다.</p>
-                  )}
-                </TabsContent>
               </Tabs>
             </div>
 

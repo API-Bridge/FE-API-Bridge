@@ -9,8 +9,12 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/contexts/language-context";
 import { useTheme } from "@/contexts/theme-context";
+import { useAuth0 } from "@/contexts/auth0-context";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { subscribeToTossPayment } from "@/lib/api";
+import { requestPayment } from "@/lib/toss-payments";
+import { useState, useEffect } from "react";
 
 const AnimatedBackground = dynamic(() => import("@/components/animated-background"), {
   ssr: false,
@@ -40,12 +44,123 @@ const getProPlanFeatures = (t: (key: string) => string) => [
 export default function PricingPage() {
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { isAuthenticated, login, getAccessToken, isLoading: authLoading, auth0Client } = useAuth0();
   const freePlanFeatures = getFreePlanFeatures(t);
   const proPlanFeatures = getProPlanFeatures(t);
+  const [isLoading, setIsLoading] = useState(false);
+  const [shouldRedirectToPayment, setShouldRedirectToPayment] = useState(false);
 
   const isDarkMode = theme === 'dark' || 
     (theme === 'system' && typeof window !== 'undefined' && 
      window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  // 결제 요청 로직 비활성화됨
+  // useEffect(() => {
+  //   if (shouldRedirectToPayment && isAuthenticated && !authLoading) {
+  //     setShouldRedirectToPayment(false);
+  //     handleProPlanSubscribe();
+  //   }
+  // }, [isAuthenticated, authLoading, shouldRedirectToPayment]);
+
+  // Auth0 상태 디버깅
+  useEffect(() => {
+    console.log('Auth0 state changed:', { isAuthenticated, authLoading });
+  }, [isAuthenticated, authLoading]);
+
+  // 자동 결제 로직 비활성화됨
+  // useEffect(() => {
+  //   const checkPendingPayment = async () => {
+  //     if (isAuthenticated && !authLoading) {
+  //       const pendingPayment = localStorage.getItem('pendingPayment');
+  //       console.log('Checking pending payment:', pendingPayment);
+  //       if (pendingPayment === 'PRO') {
+  //         localStorage.removeItem('pendingPayment');
+  //         console.log('Starting pending payment process');
+  //         // 약간의 지연을 두어 Auth0 상태가 완전히 안정화되기를 기다림
+  //         setTimeout(() => {
+  //           handleProPlanSubscribe();
+  //         }, 500);
+  //       }
+  //     }
+  //   };
+  //   
+  //   checkPendingPayment();
+  // }, [isAuthenticated, authLoading]);
+
+  const handleProPlanSubscribe = async () => {
+    try {
+      console.log('handleProPlanSubscribe called', { isAuthenticated, authLoading });
+      setIsLoading(true);
+      
+      // Auth0 로딩 중이면 잠시 대기
+      if (authLoading) {
+        console.log('Auth0 still loading, waiting...');
+        setIsLoading(false);
+        return;
+      }
+      
+      // 로그인 상태를 한 번 더 확인 (직접 체크)
+      let actualAuthState = isAuthenticated;
+      if (!isAuthenticated && auth0Client) {
+        try {
+          console.log('Double-checking authentication state...');
+          actualAuthState = await auth0Client.isAuthenticated();
+          console.log('Direct auth check result:', actualAuthState);
+        } catch (error) {
+          console.error('Error checking auth state:', error);
+        }
+      }
+      
+      // 로그인 상태 확인
+      if (!actualAuthState) {
+        console.log('User not authenticated, redirecting to login');
+        // 결제 요청 비활성화 - localStorage 저장하지 않음
+        // localStorage.setItem('pendingPayment', 'PRO');
+        console.log('Payment request disabled - not saving to localStorage');
+        // Auth0 로그인으로 리다이렉트
+        await login();
+        return;
+      }
+
+      console.log('User is authenticated, proceeding with payment');
+      
+      // Auth0에서 액세스 토큰 가져오기
+      const accessToken = await getAccessToken();
+      console.log('Got access token:', !!accessToken);
+      console.log('Access token (first 50 chars):', accessToken.substring(0, 50));
+      
+      // 백엔드에 구독 요청을 먼저 보내서 결제 정보를 생성
+      console.log('Calling backend subscription API');
+      const response = await subscribeToTossPayment('PRO', accessToken);
+      console.log('구독 요청 성공:', response);
+      
+      // 백엔드 응답에서 결제 정보 추출
+      const paymentData = response.data;
+      console.log('Payment data from backend:', paymentData);
+      
+      // 토스페이먼츠 SDK로 결제 요청 (백엔드에서 받은 데이터 사용)
+      console.log('Initiating Toss Payments with backend data', {
+        amount: paymentData.amount,
+        orderId: paymentData.orderId,
+        orderName: paymentData.orderName
+      });
+      
+      await requestPayment(
+        paymentData.amount,
+        paymentData.orderId,
+        paymentData.orderName,
+        paymentData.customerName,
+        paymentData.customerEmail,
+        paymentData.clientKey
+      );
+      
+    } catch (error) {
+      console.error('결제 요청 실패:', error);
+      alert('결제 요청에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background relative">
@@ -84,11 +199,17 @@ export default function PricingPage() {
           <div className="flex items-center space-x-2 ml-auto">
             <LanguageToggle />
             <ThemeToggle />
-            <Button size="sm" asChild>
-              <Link href="/login" prefetch={true}>
+            {isAuthenticated ? (
+              <Button size="sm" asChild>
+                <Link href="/dashboard" prefetch={true}>
+                  대시보드 <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button size="sm" onClick={login}>
                 {t('nav.getstarted')} <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -131,9 +252,15 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full font-korean" variant="outline" asChild>
-                    <Link href="/login" prefetch={true}>{t('pricing.free.cta')}</Link>
-                  </Button>
+                  {isAuthenticated ? (
+                    <Button className="w-full font-korean" variant="outline" asChild>
+                      <Link href="/dashboard" prefetch={true}>{t('pricing.free.cta')}</Link>
+                    </Button>
+                  ) : (
+                    <Button className="w-full font-korean" variant="outline" onClick={login}>
+                      {t('pricing.free.cta')}
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
 
@@ -162,8 +289,12 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full font-korean" asChild>
-                    <Link href="/login" prefetch={true}>{t('pricing.pro.cta')}</Link>
+                  <Button 
+                    className="w-full font-korean" 
+                    onClick={handleProPlanSubscribe}
+                    disabled={isLoading || authLoading}
+                  >
+                    {isLoading ? '처리 중...' : authLoading ? '로딩 중...' : t('pricing.pro.cta')}
                   </Button>
                 </CardFooter>
               </Card>
